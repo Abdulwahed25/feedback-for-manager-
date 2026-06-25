@@ -1,14 +1,16 @@
 /* =============================================
    worker.js
-   Worker dashboard and feedback form logic
+   Worker dashboard and feedback form — security hardened
    ============================================= */
 
 // ---- WORKER DASHBOARD ----
 
 function initWorkerDashboard() {
     const user = requireWorker();
+    if (!user) return;
     setNavbar(user);
   
+    // textContent — never innerHTML for user data
     document.getElementById('welcome-msg').textContent = greet(user);
   
     const tasks      = getTasks().filter(t => t.status === 'active');
@@ -22,17 +24,24 @@ function initWorkerDashboard() {
     document.getElementById('stat-pending').textContent = pending.length;
     document.getElementById('stat-done').textContent    = completed.length;
   
-    window._pendingTasks   = pending;
-    window._completedTasks = completed;
-    window._myFeedback     = myFeedback;
+    // Store in module-scoped variables, not window globals
+    _pendingTasks   = pending;
+    _completedTasks = completed;
+    _myFeedback     = myFeedback;
   
     renderWorkerList('pending');
   }
   
-  let currentTab = 'pending';
+  // Module-scoped instead of window globals
+  let _pendingTasks   = [];
+  let _completedTasks = [];
+  let _myFeedback     = [];
+  let _currentTab     = 'pending';
   
   function showTab(tab, btn) {
-    currentTab = tab;
+    // Whitelist tab values
+    if (tab !== 'pending' && tab !== 'done') return;
+    _currentTab = tab;
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     btn.classList.add('active');
     renderWorkerList(tab);
@@ -40,7 +49,9 @@ function initWorkerDashboard() {
   
   function renderWorkerList(tab) {
     const list  = document.getElementById('task-list');
-    const items = tab === 'pending' ? window._pendingTasks : window._completedTasks;
+    const items = tab === 'pending' ? _pendingTasks : _completedTasks;
+  
+    list.innerHTML = '';
   
     if (items.length === 0) {
       list.innerHTML = `
@@ -51,46 +62,88 @@ function initWorkerDashboard() {
       return;
     }
   
-    list.innerHTML = items.map(task => {
-      const isDone = tab === 'completed';
-      const sub    = window._myFeedback.find(f => f.taskId === task.id);
-      const date   = formatDate(task.createdAt);
+    items.forEach(task => {
+      const isDone  = tab === 'done';
+      const sub     = _myFeedback.find(f => f.taskId === task.id);
+      const date    = formatDate(task.createdAt);
       const subDate = sub ? formatDateTime(sub.submittedAt) : null;
   
-      return `
-        <a class="task-card-worker ${isDone ? 'done' : ''}" href="${isDone ? '#' : 'worker-feedback.html?task=' + task.id}">
-          <div class="task-status-bar ${isDone ? 'done' : 'pending'}"></div>
-          <div class="task-info">
-            <div class="task-title">${task.title}</div>
-            <div class="task-meta">${isDone ? 'Submitted ' + subDate : 'Assigned ' + date}</div>
-          </div>
-          <span class="badge ${isDone ? 'badge-success' : 'badge-warning'}">${isDone ? 'Done' : 'Pending'}</span>
-        </a>`;
-    }).join('');
+      const a = document.createElement('a');
+      a.className = `task-card-worker ${isDone ? 'done' : ''}`;
+  
+      if (isDone) {
+        a.href = '#';
+        a.addEventListener('click', e => e.preventDefault());
+      } else {
+        // Security: encode task ID in URL
+        a.href = 'worker-feedback.html?task=' + encodeURIComponent(task.id);
+      }
+  
+      const bar = document.createElement('div');
+      bar.className = `task-status-bar ${isDone ? 'done' : 'pending'}`;
+  
+      const info = document.createElement('div');
+      info.className = 'task-info';
+  
+      const title = document.createElement('div');
+      title.className = 'task-title';
+      title.textContent = task.title; // textContent — XSS safe
+  
+      const meta = document.createElement('div');
+      meta.className = 'task-meta';
+      meta.textContent = isDone
+        ? `Submitted ${subDate}`
+        : `Assigned ${date}`;
+  
+      info.appendChild(title);
+      info.appendChild(meta);
+  
+      const badge = document.createElement('span');
+      badge.className = `badge ${isDone ? 'badge-success' : 'badge-warning'}`;
+      badge.textContent = isDone ? 'Done' : 'Pending';
+  
+      a.appendChild(bar);
+      a.appendChild(info);
+      a.appendChild(badge);
+      list.appendChild(a);
+    });
   }
   
   
   // ---- WORKER FEEDBACK FORM ----
   
-  let currentUser = null;
-  let currentTask = null;
-  const fieldAnswers = {};
+  let _currentUser = null;
+  let _currentTask = null;
+  const _fieldAnswers = {};
   
   function initFeedbackPage() {
     const params = new URLSearchParams(window.location.search);
     const taskId = params.get('task');
   
-    if (!taskId) { showSection('not-found'); return; }
+    // Security: validate taskId before using it
+    if (!taskId || typeof taskId !== 'string' || taskId.length > 100) {
+      showSection('not-found');
+      return;
+    }
   
     const tasks = getTasks();
-    currentTask = tasks.find(t => t.id === taskId);
-    if (!currentTask) { showSection('not-found'); return; }
+    _currentTask = tasks.find(t => t.id === taskId);
+    if (!_currentTask) { showSection('not-found'); return; }
   
-    currentUser = getCurrentUser();
-    if (!currentUser) { showSection('login-gate'); return; }
+    // Security: only show active tasks
+    if (_currentTask.status !== 'active') { showSection('not-found'); return; }
+  
+    _currentUser = getCurrentUser();
+    if (!_currentUser) { showSection('login-gate'); return; }
+  
+    // Security: workers only — admins should not submit feedback
+    if (_currentUser.role !== 'worker') {
+      showSection('not-found');
+      return;
+    }
   
     const feedback = getFeedback();
-    const already  = feedback.find(f => f.taskId === taskId && f.workerEmail === currentUser.email);
+    const already  = feedback.find(f => f.taskId === taskId && f.workerEmail === _currentUser.email);
     if (already) { showSection('already-submitted'); return; }
   
     renderFeedbackForm();
@@ -99,6 +152,8 @@ function initWorkerDashboard() {
   
   function showSection(id) {
     const sections = ['login-gate', 'not-found', 'already-submitted', 'form-section', 'success-screen'];
+    // Whitelist section IDs
+    if (!sections.includes(id)) return;
     sections.forEach(s => {
       const el = document.getElementById(s);
       if (el) el.style.display = s === id ? 'block' : 'none';
@@ -106,80 +161,155 @@ function initWorkerDashboard() {
   }
   
   function gateLogin() {
-    const email    = document.getElementById('gate-email').value.trim();
+    if (isLoginLocked()) {
+      showAlert('gate-alert', 'Too many failed attempts. Please wait 15 minutes.');
+      return;
+    }
+  
+    const email    = sanitizeText(document.getElementById('gate-email').value, VALIDATION.MAX_EMAIL_LENGTH);
     const password = document.getElementById('gate-password').value;
-    const users    = getUsers();
-    const user     = users.find(u => u.email === email && u.password === password);
+  
+    if (!isValidEmail(email) || !password) {
+      showAlert('gate-alert', 'Please enter a valid email and password.');
+      return;
+    }
+  
+    const users = getUsers();
+    const user  = users.find(u => u.email === email && u.password === password);
   
     if (!user) {
+      recordFailedLogin();
       showAlert('gate-alert', 'Incorrect email or password.');
       return;
     }
   
-    localStorage.setItem('sd_current_user', JSON.stringify(user));
-    currentUser = user;
+    clearLoginAttempts();
+    localStorage.setItem('sd_current_user', JSON.stringify(stripPassword(user)));
+    _currentUser = stripPassword(user);
     initFeedbackPage();
   }
   
   function renderFeedbackForm() {
-    document.getElementById('task-title').textContent = currentTask.title;
-    document.getElementById('task-desc').textContent  = currentTask.description || '';
+    // Use textContent for task data — XSS safe
+    document.getElementById('task-title').textContent = _currentTask.title;
+    document.getElementById('task-desc').textContent  = _currentTask.description || '';
   
     const container = document.getElementById('fields-container');
-    container.innerHTML = currentTask.fields.map(f => {
-      let input = '';
+    container.innerHTML = '';
   
-      if (f.type === 'text') {
-        input = `<input class="form-input" id="field_${f.id}" placeholder="Your answer..."/>`;
-      } else if (f.type === 'textarea') {
-        input = `<textarea class="form-textarea" id="field_${f.id}" placeholder="Your answer..."></textarea>`;
-      } else if (f.type === 'rating') {
-        input = `<div class="rating-group">
-          ${[1,2,3,4,5].map(n =>
-            `<button type="button" class="rating-btn" data-field="${f.id}" data-val="${n}" onclick="selectRating('${f.id}', ${n})">${n}</button>`
-          ).join('')}
-        </div>`;
-      } else if (f.type === 'select') {
-        input = `<select class="form-select" id="field_${f.id}">
-          <option value="">Select an option...</option>
-          <option>Strongly Agree</option>
-          <option>Agree</option>
-          <option>Neutral</option>
-          <option>Disagree</option>
-          <option>Strongly Disagree</option>
-        </select>`;
-      } else if (f.type === 'checkbox') {
-        input = `<label class="checkbox-label">
-          <input type="checkbox" id="field_${f.id}"/>
-          I confirm I have read and understood this
-        </label>`;
-      } else if (f.type === 'yesno') {
-        input = `<div class="yesno-group">
-          <button type="button" class="yesno-btn yes" data-field="${f.id}" onclick="selectYesNo('${f.id}', 'Yes', this)">Yes</button>
-          <button type="button" class="yesno-btn no"  data-field="${f.id}" onclick="selectYesNo('${f.id}', 'No', this)">No</button>
-        </div>`;
+    _currentTask.fields.forEach(f => {
+      // Security: validate field type is in whitelist
+      const ALLOWED = ['text', 'textarea', 'rating', 'select', 'checkbox', 'yesno'];
+      if (!ALLOWED.includes(f.type)) return;
+  
+      const group = document.createElement('div');
+      group.className = 'form-group';
+      group.style.marginBottom = '22px';
+  
+      const label = document.createElement('label');
+      label.className = 'form-label';
+      label.textContent = f.label; // textContent — XSS safe
+      if (f.required) {
+        const req = document.createElement('span');
+        req.style.color = 'var(--danger)';
+        req.textContent = ' *';
+        label.appendChild(req);
       }
   
-      return `
-        <div class="form-group" style="margin-bottom:22px;">
-          <label class="form-label">
-            ${f.label}${f.required ? ' <span style="color:var(--danger)">*</span>' : ''}
-          </label>
-          ${input}
-        </div>`;
-    }).join('');
+      group.appendChild(label);
+  
+      const safeFieldId = 'field_' + encodeURIComponent(f.id);
+  
+      if (f.type === 'text') {
+        const input = document.createElement('input');
+        input.className = 'form-input';
+        input.id = safeFieldId;
+        input.placeholder = 'Your answer...';
+        input.maxLength = VALIDATION.MAX_ANSWER_LENGTH;
+        group.appendChild(input);
+  
+      } else if (f.type === 'textarea') {
+        const ta = document.createElement('textarea');
+        ta.className = 'form-textarea';
+        ta.id = safeFieldId;
+        ta.placeholder = 'Your answer...';
+        ta.maxLength = VALIDATION.MAX_ANSWER_LENGTH;
+        group.appendChild(ta);
+  
+      } else if (f.type === 'rating') {
+        const ratingGroup = document.createElement('div');
+        ratingGroup.className = 'rating-group';
+        [1,2,3,4,5].forEach(n => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'rating-btn';
+          btn.dataset.field = f.id;
+          btn.dataset.val   = n;
+          btn.textContent   = n;
+          btn.addEventListener('click', (function(fieldId, val) {
+            return function() { selectRating(fieldId, val); };
+          })(f.id, n));
+          ratingGroup.appendChild(btn);
+        });
+        group.appendChild(ratingGroup);
+  
+      } else if (f.type === 'select') {
+        const sel = document.createElement('select');
+        sel.className = 'form-select';
+        sel.id = safeFieldId;
+        ['', 'Strongly Agree', 'Agree', 'Neutral', 'Disagree', 'Strongly Disagree'].forEach((opt, i) => {
+          const o = document.createElement('option');
+          o.value = opt;
+          o.textContent = i === 0 ? 'Select an option...' : opt;
+          sel.appendChild(o);
+        });
+        group.appendChild(sel);
+  
+      } else if (f.type === 'checkbox') {
+        const lbl = document.createElement('label');
+        lbl.className = 'checkbox-label';
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.id   = safeFieldId;
+        lbl.appendChild(cb);
+        lbl.append(' I confirm I have read and understood this');
+        group.appendChild(lbl);
+  
+      } else if (f.type === 'yesno') {
+        const yesnoGroup = document.createElement('div');
+        yesnoGroup.className = 'yesno-group';
+        ['Yes', 'No'].forEach(val => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = `yesno-btn ${val.toLowerCase()}`;
+          btn.dataset.field = f.id;
+          btn.textContent = val;
+          btn.addEventListener('click', (function(fieldId, v, b) {
+            return function() { selectYesNo(fieldId, v, b); };
+          })(f.id, val, btn));
+          yesnoGroup.appendChild(btn);
+        });
+        group.appendChild(yesnoGroup);
+      }
+  
+      container.appendChild(group);
+    });
   }
   
   function selectRating(fieldId, val) {
-    fieldAnswers['field_' + fieldId] = val;
-    document.querySelectorAll(`[data-field="${fieldId}"]`).forEach(btn => {
+    if (typeof fieldId !== 'string' || typeof val !== 'number') return;
+    _fieldAnswers['field_' + fieldId] = val;
+    document.querySelectorAll(`[data-field="${CSS.escape(fieldId)}"]`).forEach(btn => {
       btn.classList.toggle('selected', parseInt(btn.dataset.val) === val);
     });
   }
   
   function selectYesNo(fieldId, val, btn) {
-    fieldAnswers['field_' + fieldId] = val;
-    document.querySelectorAll(`[data-field="${fieldId}"]`).forEach(b => b.classList.remove('selected'));
+    // Whitelist allowed values
+    if (val !== 'Yes' && val !== 'No') return;
+    if (typeof fieldId !== 'string') return;
+    _fieldAnswers['field_' + fieldId] = val;
+    document.querySelectorAll(`[data-field="${CSS.escape(fieldId)}"]`).forEach(b => b.classList.remove('selected'));
     btn.classList.add('selected');
   }
   
@@ -187,15 +317,26 @@ function initWorkerDashboard() {
     const result = {};
     let valid = true;
   
-    for (const f of currentTask.fields) {
+    for (const f of _currentTask.fields) {
+      const ALLOWED = ['text', 'textarea', 'rating', 'select', 'checkbox', 'yesno'];
+      if (!ALLOWED.includes(f.type)) continue;
+  
       let val = '';
   
       if (f.type === 'text' || f.type === 'textarea' || f.type === 'select') {
-        val = document.getElementById('field_' + f.id)?.value?.trim() || '';
+        const el = document.getElementById('field_' + encodeURIComponent(f.id));
+        val = el ? sanitizeText(el.value, VALIDATION.MAX_ANSWER_LENGTH) : '';
       } else if (f.type === 'checkbox') {
-        val = document.getElementById('field_' + f.id)?.checked ? 'Confirmed' : '';
-      } else if (f.type === 'rating' || f.type === 'yesno') {
-        val = fieldAnswers['field_' + f.id] || '';
+        const el = document.getElementById('field_' + encodeURIComponent(f.id));
+        val = el && el.checked ? 'Confirmed' : '';
+      } else if (f.type === 'rating') {
+        const raw = _fieldAnswers['field_' + f.id];
+        // Whitelist rating values
+        val = [1,2,3,4,5].includes(raw) ? String(raw) : '';
+      } else if (f.type === 'yesno') {
+        const raw = _fieldAnswers['field_' + f.id];
+        // Whitelist yes/no values
+        val = (raw === 'Yes' || raw === 'No') ? raw : '';
       }
   
       if (f.required && !val) {
@@ -204,24 +345,31 @@ function initWorkerDashboard() {
         break;
       }
   
-      result[f.label] = val || '--';
+      // Use sanitized label as key — escapeHTML handled at render time
+      result[sanitizeText(f.label, VALIDATION.MAX_LABEL_LENGTH)] = val || '--';
     }
   
     if (!valid) return;
   
+    // Double-check: has this worker already submitted?
+    const feedback = getFeedback();
+    const already  = feedback.find(f => f.taskId === _currentTask.id && f.workerEmail === _currentUser.email);
+    if (already) {
+      showSection('already-submitted');
+      return;
+    }
+  
     const entry = {
       id:          generateId('fb'),
-      taskId:      currentTask.id,
-      taskTitle:   currentTask.title,
-      workerName:  currentUser.name,
-      workerEmail: currentUser.email,
+      taskId:      _currentTask.id,
+      taskTitle:   _currentTask.title,
+      workerName:  _currentUser.name,
+      workerEmail: _currentUser.email,
       answers:     result,
       submittedAt: new Date().toISOString()
     };
   
-    const feedback = getFeedback();
     feedback.push(entry);
     saveFeedback(feedback);
-  
     showSection('success-screen');
   }

@@ -1,14 +1,16 @@
 /* =============================================
    admin.js
-   All admin page logic
+   All admin page logic — security hardened
    ============================================= */
 
 // ---- DASHBOARD ----
 
 function initDashboard() {
     const user = requireAdmin();
+    if (!user) return;
     setNavbar(user);
   
+    // Security: use textContent, never innerHTML for user-supplied data
     document.getElementById('welcome-msg').textContent = greet(user);
   
     const tasks    = getTasks();
@@ -45,37 +47,83 @@ function initDashboard() {
     }
   
     const recent = [...tasks].reverse().slice(0, 6);
-    listEl.innerHTML = recent.map(task => {
+  
+    // Security: build DOM nodes instead of string concatenation
+    // to prevent XSS from task titles or other user data
+    listEl.innerHTML = '';
+  
+    recent.forEach(task => {
       const taskFeedback = feedback.filter(f => f.taskId === task.id);
-      const pct  = workers.length > 0 ? Math.round((taskFeedback.length / workers.length) * 100) : 0;
-      const date = formatDate(task.createdAt);
+      const pct       = workers.length > 0 ? Math.round((taskFeedback.length / workers.length) * 100) : 0;
+      const date      = formatDate(task.createdAt);
       const fillClass = pct >= 80 ? 'success' : pct >= 40 ? '' : 'warning';
   
-      return `
-        <a class="task-item" href="admin-task-detail.html?id=${task.id}">
-          <div class="task-icon"></div>
-          <div class="task-info">
-            <div class="task-title">${task.title}</div>
-            <div class="task-meta">
-              <span>${date}</span>
-              <span>${taskFeedback.length} / ${workers.length} responded</span>
-              <span class="badge ${task.status === 'active' ? 'badge-success' : 'badge-grey'}">${task.status}</span>
-            </div>
-          </div>
-          <div class="task-progress">
-            <div class="task-progress-label">${pct}%</div>
-            <div class="progress-bar" style="width:80px;">
-              <div class="progress-fill ${fillClass}" style="width:${pct}%"></div>
-            </div>
-          </div>
-        </a>`;
-    }).join('');
+      const a = document.createElement('a');
+      a.className = 'task-item';
+      // Security: validate task.id is a safe string before using in URL
+      const safeId = encodeURIComponent(task.id);
+      a.href = `admin-task-detail.html?id=${safeId}`;
+  
+      const icon = document.createElement('div');
+      icon.className = 'task-icon';
+  
+      const info = document.createElement('div');
+      info.className = 'task-info';
+  
+      const title = document.createElement('div');
+      title.className = 'task-title';
+      title.textContent = task.title; // textContent — XSS safe
+  
+      const meta = document.createElement('div');
+      meta.className = 'task-meta';
+  
+      const dateSpan = document.createElement('span');
+      dateSpan.textContent = date;
+  
+      const countSpan = document.createElement('span');
+      countSpan.textContent = `${taskFeedback.length} / ${workers.length} responded`;
+  
+      const badge = document.createElement('span');
+      badge.className = `badge ${task.status === 'active' ? 'badge-success' : 'badge-grey'}`;
+      badge.textContent = task.status === 'active' ? 'active' : 'closed'; // whitelist
+  
+      meta.appendChild(dateSpan);
+      meta.appendChild(countSpan);
+      meta.appendChild(badge);
+      info.appendChild(title);
+      info.appendChild(meta);
+  
+      const progress = document.createElement('div');
+      progress.className = 'task-progress';
+  
+      const progressLabel = document.createElement('div');
+      progressLabel.className = 'task-progress-label';
+      progressLabel.textContent = `${pct}%`;
+  
+      const bar = document.createElement('div');
+      bar.className = 'progress-bar';
+      bar.style.width = '80px';
+  
+      const fill = document.createElement('div');
+      fill.className = `progress-fill ${fillClass}`;
+      fill.style.width = `${pct}%`;
+  
+      bar.appendChild(fill);
+      progress.appendChild(progressLabel);
+      progress.appendChild(bar);
+  
+      a.appendChild(icon);
+      a.appendChild(info);
+      a.appendChild(progress);
+      listEl.appendChild(a);
+    });
   }
   
   function renderLatestLink(tasks) {
     if (tasks.length === 0) return;
     const latest = tasks[tasks.length - 1];
     const link   = buildFeedbackLink(latest.id);
+    // Security: use textContent, not innerHTML
     document.getElementById('copy-url').textContent = link;
     document.getElementById('copy-btn').style.display = 'inline-flex';
   }
@@ -86,18 +134,44 @@ function initDashboard() {
       actEl.innerHTML = `<p style="color:var(--grey-400); font-size:0.85rem; text-align:center; padding:20px 0;">No activity yet</p>`;
       return;
     }
+  
+    actEl.innerHTML = '';
     const recent = [...feedback].reverse().slice(0, 5);
-    actEl.innerHTML = recent.map(f => {
+  
+    recent.forEach(f => {
       const task = tasks.find(t => t.id === f.taskId);
-      return `
-        <div class="activity-item">
-          <div class="activity-dot"></div>
-          <div>
-            <div class="activity-text"><strong>${f.workerName}</strong> submitted feedback on <strong>${task ? task.title : 'a task'}</strong></div>
-            <div class="activity-time">${formatDateTime(f.submittedAt)}</div>
-          </div>
-        </div>`;
-    }).join('');
+  
+      const item = document.createElement('div');
+      item.className = 'activity-item';
+  
+      const dot = document.createElement('div');
+      dot.className = 'activity-dot';
+  
+      const content = document.createElement('div');
+  
+      const text = document.createElement('div');
+      text.className = 'activity-text';
+  
+      const nameStrong = document.createElement('strong');
+      nameStrong.textContent = f.workerName; // textContent — XSS safe
+  
+      const taskStrong = document.createElement('strong');
+      taskStrong.textContent = task ? task.title : 'a task';
+  
+      text.appendChild(nameStrong);
+      text.append(' submitted feedback on ');
+      text.appendChild(taskStrong);
+  
+      const time = document.createElement('div');
+      time.className = 'activity-time';
+      time.textContent = formatDateTime(f.submittedAt);
+  
+      content.appendChild(text);
+      content.appendChild(time);
+      item.appendChild(dot);
+      item.appendChild(content);
+      actEl.appendChild(item);
+    });
   }
   
   function copyDashboardLink() {
@@ -113,6 +187,7 @@ function initDashboard() {
   
   function initCreateTask() {
     const user = requireAdmin();
+    if (!user) return;
     setNavbar(user);
   
     fields = [
@@ -124,6 +199,8 @@ function initDashboard() {
     renderFields();
   }
   
+  const ALLOWED_FIELD_TYPES = ['text', 'textarea', 'rating', 'select', 'checkbox', 'yesno'];
+  
   const fieldTypeLabels = {
     text:     'Short Text',
     textarea: 'Long Text',
@@ -134,59 +211,106 @@ function initDashboard() {
   };
   
   function addField(type) {
+    // Whitelist field types — never trust input directly
+    if (!ALLOWED_FIELD_TYPES.includes(type)) return;
     fields.push({ id: generateId('f'), type, label: fieldTypeLabels[type] + ' Question', required: false });
     renderFields();
   }
   
   function deleteField(id) {
+    // Validate id is a string before using
+    if (typeof id !== 'string') return;
     fields = fields.filter(f => f.id !== id);
     renderFields();
   }
   
   function toggleRequired(id) {
+    if (typeof id !== 'string') return;
     const f = fields.find(f => f.id === id);
     if (f) { f.required = !f.required; renderFields(); }
   }
   
   function updateFieldLabel(id, val) {
+    if (typeof id !== 'string') return;
     const f = fields.find(f => f.id === id);
-    if (f) { f.label = val; updatePreview(); }
+    if (f) {
+      // Sanitize and limit length
+      f.label = sanitizeText(val, VALIDATION.MAX_LABEL_LENGTH);
+      updatePreview();
+    }
   }
   
   function renderFields() {
     const list  = document.getElementById('fields-list');
     const empty = document.getElementById('fields-empty');
-  
     if (empty) empty.style.display = fields.length ? 'none' : 'block';
   
-    const items = fields.map(f => `
-      <div class="field-item">
-        <span class="field-drag">|||</span>
-        <div class="field-info">
-          <input class="field-label-edit" value="${f.label}" onchange="updateFieldLabel('${f.id}', this.value)" />
-          <div class="field-type-tag">${fieldTypeLabels[f.type]}</div>
-        </div>
-        <button class="field-required-toggle ${f.required ? 'on' : ''}" onclick="toggleRequired('${f.id}')">
-          ${f.required ? 'Required' : 'Optional'}
-        </button>
-        <button class="field-delete" onclick="deleteField('${f.id}')">Remove</button>
-      </div>`).join('');
+    // Remove old field items (keep the empty placeholder)
+    const existing = list.querySelectorAll('.field-item');
+    existing.forEach(el => el.remove());
   
-    list.innerHTML = `
-      <div id="fields-empty" class="empty-fields" style="display:${fields.length ? 'none' : 'block'}">
-        Click a field type above to add it to your form
-      </div>` + items;
+    fields.forEach(f => {
+      const item = document.createElement('div');
+      item.className = 'field-item';
+  
+      const drag = document.createElement('span');
+      drag.className = 'field-drag';
+      drag.textContent = '|||';
+  
+      const info = document.createElement('div');
+      info.className = 'field-info';
+  
+      const labelInput = document.createElement('input');
+      labelInput.className = 'field-label-edit';
+      labelInput.type = 'text';
+      labelInput.maxLength = VALIDATION.MAX_LABEL_LENGTH;
+      labelInput.value = f.label;
+      // Use closure to capture f.id safely
+      labelInput.addEventListener('change', (function(fieldId) {
+        return function() { updateFieldLabel(fieldId, this.value); };
+      })(f.id));
+  
+      const typeTag = document.createElement('div');
+      typeTag.className = 'field-type-tag';
+      typeTag.textContent = fieldTypeLabels[f.type] || '';
+  
+      info.appendChild(labelInput);
+      info.appendChild(typeTag);
+  
+      const reqBtn = document.createElement('button');
+      reqBtn.className = `field-required-toggle ${f.required ? 'on' : ''}`;
+      reqBtn.textContent = f.required ? 'Required' : 'Optional';
+      reqBtn.addEventListener('click', (function(fieldId) {
+        return function() { toggleRequired(fieldId); };
+      })(f.id));
+  
+      const delBtn = document.createElement('button');
+      delBtn.className = 'field-delete';
+      delBtn.textContent = 'Remove';
+      delBtn.addEventListener('click', (function(fieldId) {
+        return function() { deleteField(fieldId); };
+      })(f.id));
+  
+      item.appendChild(drag);
+      item.appendChild(info);
+      item.appendChild(reqBtn);
+      item.appendChild(delBtn);
+      list.appendChild(item);
+    });
   
     updatePreview();
   }
   
   function updatePreview() {
-    const titleEl = document.getElementById('preview-title');
-    const descEl  = document.getElementById('preview-desc');
+    const titleEl  = document.getElementById('preview-title');
+    const descEl   = document.getElementById('preview-desc');
     const fieldsEl = document.getElementById('preview-fields');
   
-    if (titleEl) titleEl.textContent = document.getElementById('task-title').value || 'Task title will appear here';
-    if (descEl)  descEl.textContent  = document.getElementById('task-desc').value  || 'Description will appear here';
+    const titleVal = document.getElementById('task-title')?.value || '';
+    const descVal  = document.getElementById('task-desc')?.value  || '';
+  
+    if (titleEl) titleEl.textContent = titleVal || 'Task title will appear here';
+    if (descEl)  descEl.textContent  = descVal  || 'Description will appear here';
   
     if (!fieldsEl) return;
   
@@ -195,45 +319,120 @@ function initDashboard() {
       return;
     }
   
-    fieldsEl.innerHTML = fields.map(f => {
-      let input = '';
-      if (f.type === 'text')     input = `<input class="preview-input" placeholder="Worker answer..." readonly/>`;
-      if (f.type === 'textarea') input = `<textarea class="preview-input preview-textarea" placeholder="Worker answer..." readonly></textarea>`;
-      if (f.type === 'rating')   input = `<div class="preview-rating">1 &nbsp; 2 &nbsp; 3 &nbsp; 4 &nbsp; 5</div>`;
-      if (f.type === 'select')   input = `<select class="preview-input" disabled><option>Select an option...</option></select>`;
-      if (f.type === 'checkbox') input = `<label class="preview-check"><input type="checkbox" disabled/> I confirm</label>`;
-      if (f.type === 'yesno')    input = `<div class="preview-yesno"><button disabled>Yes</button><button disabled>No</button></div>`;
+    fieldsEl.innerHTML = '';
   
-      return `
-        <div class="preview-field">
-          <div class="preview-label">${f.label}${f.required ? ' <span class="req">*</span>' : ''}</div>
-          ${input}
-        </div>`;
-    }).join('');
+    fields.forEach(f => {
+      const fieldDiv = document.createElement('div');
+      fieldDiv.className = 'preview-field';
+  
+      const labelDiv = document.createElement('div');
+      labelDiv.className = 'preview-label';
+      labelDiv.textContent = f.label; // textContent — XSS safe
+      if (f.required) {
+        const req = document.createElement('span');
+        req.className = 'req';
+        req.textContent = ' *';
+        labelDiv.appendChild(req);
+      }
+  
+      fieldDiv.appendChild(labelDiv);
+  
+      // Preview inputs are read-only/disabled — no security risk
+      let inputEl;
+      if (f.type === 'text') {
+        inputEl = document.createElement('input');
+        inputEl.className = 'preview-input';
+        inputEl.placeholder = 'Worker answer...';
+        inputEl.readOnly = true;
+      } else if (f.type === 'textarea') {
+        inputEl = document.createElement('textarea');
+        inputEl.className = 'preview-input preview-textarea';
+        inputEl.placeholder = 'Worker answer...';
+        inputEl.readOnly = true;
+      } else if (f.type === 'rating') {
+        inputEl = document.createElement('div');
+        inputEl.className = 'preview-rating';
+        inputEl.textContent = '1   2   3   4   5';
+      } else if (f.type === 'select') {
+        inputEl = document.createElement('select');
+        inputEl.className = 'preview-input';
+        inputEl.disabled = true;
+        const opt = document.createElement('option');
+        opt.textContent = 'Select an option...';
+        inputEl.appendChild(opt);
+      } else if (f.type === 'checkbox') {
+        inputEl = document.createElement('label');
+        inputEl.className = 'preview-check';
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.disabled = true;
+        inputEl.appendChild(cb);
+        inputEl.append(' I confirm');
+      } else if (f.type === 'yesno') {
+        inputEl = document.createElement('div');
+        inputEl.className = 'preview-yesno';
+        const yes = document.createElement('button');
+        yes.disabled = true;
+        yes.textContent = 'Yes';
+        const no = document.createElement('button');
+        no.disabled = true;
+        no.textContent = 'No';
+        inputEl.appendChild(yes);
+        inputEl.appendChild(no);
+      }
+  
+      if (inputEl) fieldDiv.appendChild(inputEl);
+      fieldsEl.appendChild(fieldDiv);
+    });
   }
   
   function createTask() {
-    const title = document.getElementById('task-title').value.trim();
-    if (!title) { alert('Please enter a task title.'); return; }
-    if (fields.length === 0) { alert('Please add at least one field.'); return; }
+    const title = sanitizeText(document.getElementById('task-title').value, VALIDATION.MAX_TITLE_LENGTH);
+    const desc  = sanitizeText(document.getElementById('task-desc').value,  VALIDATION.MAX_DESC_LENGTH);
+  
+    if (!title) { showAlert('task-alert', 'Please enter a task title.'); return; }
+    if (title.length < 3) { showAlert('task-alert', 'Title is too short.'); return; }
+    if (fields.length === 0) { showAlert('task-alert', 'Please add at least one field.'); return; }
+  
+    // Validate all fields have valid types and non-empty labels
+    for (const f of fields) {
+      if (!ALLOWED_FIELD_TYPES.includes(f.type)) {
+        showAlert('task-alert', 'Invalid field type detected.');
+        return;
+      }
+      if (!f.label || f.label.trim().length === 0) {
+        showAlert('task-alert', 'All fields must have a label.');
+        return;
+      }
+    }
   
     const task = {
       id:          generateId('task'),
       title,
-      description: document.getElementById('task-desc').value.trim(),
-      fields:      fields.map(f => ({ ...f })),
-      createdAt:   new Date().toISOString(),
-      status:      'active'
+      description: desc,
+      fields:      fields.map(f => ({
+        id:       f.id,
+        type:     f.type,
+        label:    sanitizeText(f.label, VALIDATION.MAX_LABEL_LENGTH),
+        required: Boolean(f.required)
+      })),
+      createdAt: new Date().toISOString(),
+      status:    'active'
     };
   
     const tasks = getTasks();
     tasks.push(task);
     saveTasks(tasks);
   
-    const link = buildFeedbackLink(task.id);
-    document.getElementById('generated-link').textContent = link;
-    document.getElementById('link-result').style.display = 'block';
-    document.getElementById('link-result').scrollIntoView({ behavior: 'smooth' });
+    const link    = buildFeedbackLink(task.id);
+    const linkEl  = document.getElementById('generated-link');
+    const resultEl = document.getElementById('link-result');
+  
+    if (linkEl)   linkEl.textContent = link; // textContent — XSS safe
+    if (resultEl) {
+      resultEl.style.display = 'block';
+      resultEl.scrollIntoView({ behavior: 'smooth' });
+    }
   }
   
   function copyGeneratedLink() {
@@ -243,20 +442,27 @@ function initDashboard() {
   }
   
   function buildFeedbackLink(taskId) {
-    return window.location.origin + '/pages/worker-feedback.html?task=' + taskId;
+    // Security: encode taskId to prevent URL injection
+    return window.location.origin + '/pages/worker-feedback.html?task=' + encodeURIComponent(taskId);
   }
   
   
-  // ---- TASK DETAIL ----
+  // ---- TASK DETAIL / HISTORY ----
   
   function initTaskDetail() {
-    const user   = requireAdmin();
+    const user = requireAdmin();
+    if (!user) return;
     setNavbar(user);
   
     const params = new URLSearchParams(window.location.search);
     const taskId = params.get('id');
   
-    if (!taskId) { renderHistory(); return; }
+    // Security: validate taskId — must be a non-empty string, no special chars
+    if (!taskId || typeof taskId !== 'string' || taskId.length > 100) {
+      renderHistory();
+      return;
+    }
+  
     renderDetail(taskId);
   }
   
@@ -278,30 +484,7 @@ function initDashboard() {
       return;
     }
   
-    const rows = [...tasks].reverse().map(task => {
-      const taskFeedback = feedback.filter(f => f.taskId === task.id);
-      const pct  = workers.length > 0 ? Math.round((taskFeedback.length / workers.length) * 100) : 0;
-      const date = formatDate(task.createdAt);
-      const fillClass = pct >= 80 ? 'success' : '';
-  
-      return `
-        <tr>
-          <td><a href="admin-task-detail.html?id=${task.id}" style="font-weight:600; color:var(--purple-600);">${task.title}</a></td>
-          <td>${date}</td>
-          <td>${taskFeedback.length} / ${workers.length}</td>
-          <td>
-            <div style="display:flex; align-items:center; gap:8px;">
-              <div class="progress-bar" style="width:80px;">
-                <div class="progress-fill ${fillClass}" style="width:${pct}%"></div>
-              </div>
-              <span style="font-size:0.82rem; color:var(--grey-400);">${pct}%</span>
-            </div>
-          </td>
-          <td><span class="badge ${task.status === 'active' ? 'badge-success' : 'badge-grey'}">${task.status}</span></td>
-          <td><a href="admin-task-detail.html?id=${task.id}" class="btn btn-outline btn-sm">View</a></td>
-        </tr>`;
-    }).join('');
-  
+    // Build table using DOM to prevent XSS
     content.innerHTML = `
       <div class="page-header">
         <h2>History</h2>
@@ -311,17 +494,75 @@ function initDashboard() {
         <table class="table">
           <thead>
             <tr>
-              <th>Task</th>
-              <th>Created</th>
-              <th>Responses</th>
-              <th>Rate</th>
-              <th>Status</th>
-              <th></th>
+              <th>Task</th><th>Created</th><th>Responses</th><th>Rate</th><th>Status</th><th></th>
             </tr>
           </thead>
-          <tbody>${rows}</tbody>
+          <tbody id="history-tbody"></tbody>
         </table>
       </div>`;
+  
+    const tbody = document.getElementById('history-tbody');
+  
+    [...tasks].reverse().forEach(task => {
+      const taskFeedback = feedback.filter(f => f.taskId === task.id);
+      const pct  = workers.length > 0 ? Math.round((taskFeedback.length / workers.length) * 100) : 0;
+      const safeId = encodeURIComponent(task.id);
+  
+      const tr = document.createElement('tr');
+  
+      // Task title cell — textContent prevents XSS
+      const tdTitle = document.createElement('td');
+      const titleLink = document.createElement('a');
+      titleLink.href = `admin-task-detail.html?id=${safeId}`;
+      titleLink.style.fontWeight = '600';
+      titleLink.style.color = 'var(--purple-600)';
+      titleLink.textContent = task.title;
+      tdTitle.appendChild(titleLink);
+  
+      const tdDate = document.createElement('td');
+      tdDate.textContent = formatDate(task.createdAt);
+  
+      const tdCount = document.createElement('td');
+      tdCount.textContent = `${taskFeedback.length} / ${workers.length}`;
+  
+      const tdRate = document.createElement('td');
+      const barWrap = document.createElement('div');
+      barWrap.style.cssText = 'display:flex; align-items:center; gap:8px;';
+      const bar = document.createElement('div');
+      bar.className = 'progress-bar';
+      bar.style.width = '80px';
+      const barFill = document.createElement('div');
+      barFill.className = `progress-fill ${pct >= 80 ? 'success' : ''}`;
+      barFill.style.width = `${pct}%`;
+      bar.appendChild(barFill);
+      const pctSpan = document.createElement('span');
+      pctSpan.style.cssText = 'font-size:0.82rem; color:var(--grey-400);';
+      pctSpan.textContent = `${pct}%`;
+      barWrap.appendChild(bar);
+      barWrap.appendChild(pctSpan);
+      tdRate.appendChild(barWrap);
+  
+      const tdStatus = document.createElement('td');
+      const badge = document.createElement('span');
+      badge.className = `badge ${task.status === 'active' ? 'badge-success' : 'badge-grey'}`;
+      badge.textContent = task.status === 'active' ? 'active' : 'closed';
+      tdStatus.appendChild(badge);
+  
+      const tdAction = document.createElement('td');
+      const viewLink = document.createElement('a');
+      viewLink.href = `admin-task-detail.html?id=${safeId}`;
+      viewLink.className = 'btn btn-outline btn-sm';
+      viewLink.textContent = 'View';
+      tdAction.appendChild(viewLink);
+  
+      tr.appendChild(tdTitle);
+      tr.appendChild(tdDate);
+      tr.appendChild(tdCount);
+      tr.appendChild(tdRate);
+      tr.appendChild(tdStatus);
+      tr.appendChild(tdAction);
+      tbody.appendChild(tr);
+    });
   }
   
   function renderDetail(taskId) {
@@ -339,25 +580,20 @@ function initDashboard() {
     const taskFeedback    = feedback.filter(f => f.taskId === taskId);
     const respondedEmails = taskFeedback.map(f => f.workerEmail);
     const pending = workers.filter(w => !respondedEmails.includes(w.email));
-    const pct  = workers.length > 0 ? Math.round((taskFeedback.length / workers.length) * 100) : 0;
-    const link = buildFeedbackLink(task.id);
+    const pct     = workers.length > 0 ? Math.round((taskFeedback.length / workers.length) * 100) : 0;
+    const link    = buildFeedbackLink(task.id);
   
+    // Build static structure with innerHTML (no user data here)
     content.innerHTML = `
       <div style="margin-bottom:16px;">
         <a href="admin-history.html" class="back-link">Back to All Tasks</a>
       </div>
-  
       <div class="detail-header">
         <span class="badge badge-purple">Feedback Task</span>
-        <h2>${task.title}</h2>
-        <p>${task.description || 'No description provided.'}</p>
-        <div class="detail-meta">
-          <span>Created ${formatDate(task.createdAt)}</span>
-          <span>${taskFeedback.length} / ${workers.length} responded</span>
-          <span>${pct}% response rate</span>
-        </div>
+        <h2 id="detail-title"></h2>
+        <p id="detail-desc"></p>
+        <div class="detail-meta" id="detail-meta"></div>
       </div>
-  
       <div class="stats-row" style="margin-bottom:24px;">
         <div class="stat-card purple">
           <span class="stat-label">Response Rate</span>
@@ -374,53 +610,138 @@ function initDashboard() {
           <span class="stat-sub">have not responded</span>
         </div>
       </div>
-  
       <div class="card" style="margin-bottom:24px;">
         <h4 style="margin-bottom:10px;">Task Link</h4>
-        <p style="font-size:0.85rem; margin-bottom:12px;">Share this link in your Outlook email so workers can submit feedback.</p>
+        <p style="font-size:0.85rem; margin-bottom:12px;">Share this link in your Outlook email.</p>
         <div class="copy-box">
-          <span style="flex:1;">${link}</span>
-          <button class="btn btn-primary btn-sm" onclick="copyToClipboard('${link}', this, 'Copy Link')">Copy Link</button>
+          <span id="detail-link" style="flex:1;"></span>
+          <button class="btn btn-primary btn-sm" id="copy-link-btn">Copy Link</button>
         </div>
       </div>
-  
       <div class="detail-two-col">
         <div>
-          <h3 style="margin-bottom:16px;">Responses (${taskFeedback.length})</h3>
-          ${taskFeedback.length === 0
-            ? `<div class="empty-state card"><h4>No responses yet</h4><p>Share the task link with your team.</p></div>`
-            : taskFeedback.map(fb => `
-                <div class="response-card">
-                  <div class="response-header">
-                    <div class="response-avatar">${fb.workerName.charAt(0)}</div>
-                    <div>
-                      <div class="response-name">${fb.workerName}</div>
-                      <div class="response-time">${fb.workerEmail} &middot; ${formatDateTime(fb.submittedAt)}</div>
-                    </div>
-                    <span class="badge badge-success" style="margin-left:auto;">Submitted</span>
-                  </div>
-                  ${Object.entries(fb.answers).map(([q, a]) => `
-                    <div class="answer-row">
-                      <div class="answer-q">${q}</div>
-                      <div class="answer-a">${a}</div>
-                    </div>`).join('')}
-                </div>`).join('')}
+          <h3 style="margin-bottom:16px;">Responses (<span id="response-count"></span>)</h3>
+          <div id="responses-container"></div>
         </div>
-  
         <div>
           <div class="card">
-            <h4 style="margin-bottom:12px;">Pending (${pending.length})</h4>
-            ${pending.length === 0
-              ? `<p style="font-size:0.85rem; color:var(--success);">All workers have responded.</p>`
-              : pending.map(w => `
-                  <div class="pending-item">
-                    <div class="pending-dot"></div>
-                    <div>
-                      <div class="pending-name">${w.name}</div>
-                      <div class="pending-email">${w.email}</div>
-                    </div>
-                  </div>`).join('')}
+            <h4 style="margin-bottom:12px;">Pending (<span id="pending-count"></span>)</h4>
+            <div id="pending-container"></div>
           </div>
         </div>
       </div>`;
+  
+    // Now fill in user data safely using textContent
+    document.getElementById('detail-title').textContent = task.title;
+    document.getElementById('detail-desc').textContent  = task.description || 'No description provided.';
+    document.getElementById('detail-link').textContent  = link;
+    document.getElementById('response-count').textContent = taskFeedback.length;
+    document.getElementById('pending-count').textContent  = pending.length;
+  
+    const metaEl = document.getElementById('detail-meta');
+    [
+      `Created ${formatDate(task.createdAt)}`,
+      `${taskFeedback.length} / ${workers.length} responded`,
+      `${pct}% response rate`
+    ].forEach(text => {
+      const span = document.createElement('span');
+      span.textContent = text;
+      metaEl.appendChild(span);
+    });
+  
+    document.getElementById('copy-link-btn').addEventListener('click', function() {
+      copyToClipboard(link, this, 'Copy Link');
+    });
+  
+    // Render responses
+    const responsesEl = document.getElementById('responses-container');
+    if (taskFeedback.length === 0) {
+      responsesEl.innerHTML = `<div class="empty-state card"><h4>No responses yet</h4><p>Share the task link with your team.</p></div>`;
+    } else {
+      taskFeedback.forEach(fb => {
+        const card = document.createElement('div');
+        card.className = 'response-card';
+  
+        const header = document.createElement('div');
+        header.className = 'response-header';
+  
+        const avatar = document.createElement('div');
+        avatar.className = 'response-avatar';
+        avatar.textContent = fb.workerName ? fb.workerName.charAt(0).toUpperCase() : '?';
+  
+        const nameBlock = document.createElement('div');
+        const name = document.createElement('div');
+        name.className = 'response-name';
+        name.textContent = fb.workerName;
+  
+        const timeLine = document.createElement('div');
+        timeLine.className = 'response-time';
+        timeLine.textContent = `${fb.workerEmail} · ${formatDateTime(fb.submittedAt)}`;
+  
+        nameBlock.appendChild(name);
+        nameBlock.appendChild(timeLine);
+  
+        const submittedBadge = document.createElement('span');
+        submittedBadge.className = 'badge badge-success';
+        submittedBadge.style.marginLeft = 'auto';
+        submittedBadge.textContent = 'Submitted';
+  
+        header.appendChild(avatar);
+        header.appendChild(nameBlock);
+        header.appendChild(submittedBadge);
+        card.appendChild(header);
+  
+        // Render each answer — all via textContent
+        Object.entries(fb.answers).forEach(([q, a]) => {
+          const row = document.createElement('div');
+          row.className = 'answer-row';
+  
+          const qEl = document.createElement('div');
+          qEl.className = 'answer-q';
+          qEl.textContent = q;
+  
+          const aEl = document.createElement('div');
+          aEl.className = 'answer-a';
+          aEl.textContent = a;
+  
+          row.appendChild(qEl);
+          row.appendChild(aEl);
+          card.appendChild(row);
+        });
+  
+        responsesEl.appendChild(card);
+      });
+    }
+  
+    // Render pending workers
+    const pendingEl = document.getElementById('pending-container');
+    if (pending.length === 0) {
+      const p = document.createElement('p');
+      p.style.cssText = 'font-size:0.85rem; color:var(--success);';
+      p.textContent = 'All workers have responded.';
+      pendingEl.appendChild(p);
+    } else {
+      pending.forEach(w => {
+        const item = document.createElement('div');
+        item.className = 'pending-item';
+  
+        const dot = document.createElement('div');
+        dot.className = 'pending-dot';
+  
+        const info = document.createElement('div');
+        const wName = document.createElement('div');
+        wName.className = 'pending-name';
+        wName.textContent = w.name;
+  
+        const wEmail = document.createElement('div');
+        wEmail.className = 'pending-email';
+        wEmail.textContent = w.email;
+  
+        info.appendChild(wName);
+        info.appendChild(wEmail);
+        item.appendChild(dot);
+        item.appendChild(info);
+        pendingEl.appendChild(item);
+      });
+    }
   }
