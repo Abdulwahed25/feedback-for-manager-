@@ -95,10 +95,12 @@ function sendSuccess(array $data = [], int $code = 200): void {
     exit;
 }
 
-function sendError(string $message, int $code = 400): void {
+function sendError(string $message, int $code = 400, array $data = []): void {
     http_response_code($code);
     header('Content-Type: application/json; charset=utf-8');
-    echo json_encode(['success' => false, 'message' => $message]);
+    $payload = ['success' => false, 'message' => $message];
+    if (!empty($data)) $payload['data'] = $data;
+    echo json_encode($payload);
     exit;
 }
 

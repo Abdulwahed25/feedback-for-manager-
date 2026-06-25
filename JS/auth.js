@@ -1,66 +1,57 @@
 /* =============================================
    auth.js
-   Login and signup logic — security hardened
+   Login and signup — connected to PHP backend
    ============================================= */
 
 // ---- LOGIN ----
 
-function handleLogin() {
-    // Rate limiting check — block after 5 failed attempts
-    if (isLoginLocked()) {
-      showAlert('alert-box', 'Too many failed attempts. Please wait 15 minutes before trying again.');
-      return;
-    }
+async function handleLogin() {
+    const btn = document.getElementById('login-btn');
+    if (btn) btn.disabled = true;
   
     const emailRaw    = document.getElementById('email').value.trim();
     const passwordRaw = document.getElementById('password').value;
   
-    // Server-side will do real validation — this is just UX feedback
     if (!emailRaw || !passwordRaw) {
       showAlert('alert-box', 'Please fill in all fields.');
+      if (btn) btn.disabled = false;
       return;
     }
   
     if (!isValidEmail(emailRaw)) {
       showAlert('alert-box', 'Please enter a valid email address.');
+      if (btn) btn.disabled = false;
       return;
     }
   
     if (passwordRaw.length < VALIDATION.MIN_PASSWORD_LENGTH) {
       showAlert('alert-box', 'Password must be at least 8 characters.');
+      if (btn) btn.disabled = false;
       return;
     }
   
-    if (passwordRaw.length > VALIDATION.MAX_PASSWORD_LENGTH) {
-      showAlert('alert-box', 'Invalid credentials.');
-      return;
-    }
+    try {
+      const res = await apiPost('/auth/login.php', {
+        email:    emailRaw,
+        password: passwordRaw,
+      });
   
-    const users = getUsers();
-    const user  = users.find(u => u.email === emailRaw && u.password === passwordRaw);
-  
-    if (!user) {
-      // Record failed attempt for rate limiting
-      const state = recordFailedLogin();
-      const remaining = RATE_LIMIT.MAX_ATTEMPTS - state.attempts.length;
-  
-      if (state.locked) {
-        showAlert('alert-box', 'Too many failed attempts. Please wait 15 minutes.');
-      } else {
-        // Generic message — do not reveal whether email or password was wrong
-        showAlert('alert-box', `Incorrect credentials. ${remaining} attempt${remaining !== 1 ? 's' : ''} remaining.`);
+      if (!res.success) {
+        showAlert('alert-box', res.message || 'Incorrect email or password.');
+        if (btn) btn.disabled = false;
+        return;
       }
-      return;
-    }
   
-    // Success — clear rate limit, store session WITHOUT password
-    clearLoginAttempts();
-    localStorage.setItem('sd_current_user', JSON.stringify(stripPassword(user)));
+      // Redirect based on role returned from server
+      if (res.data.role === 'admin') {
+        window.location.replace('admin-dashboard.html');
+      } else {
+        window.location.replace('worker-dashboard.html');
+      }
   
-    if (user.role === 'admin') {
-      window.location.replace('admin-dashboard.html');
-    } else {
-      window.location.replace('worker-dashboard.html');
+    } catch (e) {
+      showAlert('alert-box', 'Could not connect to the server. Please try again.');
+      if (btn) btn.disabled = false;
     }
   }
   
@@ -77,9 +68,8 @@ function handleLogin() {
     }
   }
   
-  // Allow Enter key — only on login page where email field exists
   document.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter' && document.getElementById('email') && document.getElementById('toggle-pw-btn')) {
+    if (e.key === 'Enter' && document.getElementById('login-btn')) {
       handleLogin();
     }
   });
@@ -95,7 +85,6 @@ function handleLogin() {
   }
   
   function selectRole(role) {
-    // Whitelist — only accept known roles
     if (role !== 'admin' && role !== 'worker') return;
     selectedRole = role;
     const adminCard  = document.getElementById('role-admin');
@@ -129,80 +118,86 @@ function handleLogin() {
     label.textContent     = levels[score].text;
   }
   
-  function handleSignup() {
+  async function handleSignup() {
+    const btn = document.getElementById('signup-btn');
+    if (btn) btn.disabled = true;
+  
     const fname    = sanitizeText(document.getElementById('fname').value, VALIDATION.MAX_NAME_LENGTH);
     const lname    = sanitizeText(document.getElementById('lname').value, VALIDATION.MAX_NAME_LENGTH);
     const email    = sanitizeText(document.getElementById('email').value, VALIDATION.MAX_EMAIL_LENGTH);
     const password = document.getElementById('password').value;
     const confirm  = document.getElementById('confirm').value;
   
-    // ---- Validate all fields ----
     if (!fname || !lname || !email || !password || !confirm) {
       showAlert('alert-box', 'Please fill in all fields.');
+      if (btn) btn.disabled = false;
       return;
     }
   
     if (!isValidName(fname) || !isValidName(lname)) {
       showAlert('alert-box', 'Name contains invalid characters.');
+      if (btn) btn.disabled = false;
       return;
     }
   
     if (!isValidEmail(email)) {
       showAlert('alert-box', 'Please enter a valid email address.');
+      if (btn) btn.disabled = false;
       return;
     }
   
     if (password.length < VALIDATION.MIN_PASSWORD_LENGTH) {
       showAlert('alert-box', 'Password must be at least 8 characters.');
+      if (btn) btn.disabled = false;
       return;
     }
   
     if (password.length > VALIDATION.MAX_PASSWORD_LENGTH) {
       showAlert('alert-box', 'Password is too long.');
+      if (btn) btn.disabled = false;
       return;
     }
   
     if (password !== confirm) {
       showAlert('alert-box', 'Passwords do not match.');
+      if (btn) btn.disabled = false;
       return;
     }
   
-    // Whitelist role — never trust what the UI says alone
     if (selectedRole !== 'admin' && selectedRole !== 'worker') {
       showAlert('alert-box', 'Invalid role selected.');
+      if (btn) btn.disabled = false;
       return;
     }
   
-    const users = getUsers();
-    if (users.find(u => u.email === email.toLowerCase())) {
-      showAlert('alert-box', 'An account with this email already exists.');
-      return;
+    try {
+      const res = await apiPost('/auth/signup.php', {
+        fname,
+        lname,
+        email:    email.toLowerCase(),
+        password,
+        confirm,
+        role:     selectedRole,
+      });
+  
+      if (!res.success) {
+        showAlert('alert-box', res.message || 'Could not create account.');
+        if (btn) btn.disabled = false;
+        return;
+      }
+  
+      showAlert('alert-box', 'Account created. Redirecting...', 'success');
+  
+      setTimeout(() => {
+        window.location.replace(res.data.role === 'admin'
+          ? 'admin-dashboard.html'
+          : 'worker-dashboard.html');
+      }, 1000);
+  
+    } catch (e) {
+      showAlert('alert-box', 'Could not connect to the server. Please try again.');
+      if (btn) btn.disabled = false;
     }
-  
-    // Security note: In the PHP backend, password is bcrypt hashed before storage.
-    // In this localStorage prototype, we store it as-is only for demo purposes.
-    // This entire function will be replaced by a fetch() call to signup.php.
-    const newUser = {
-      name:      `${fname} ${lname}`,
-      email:     email.toLowerCase(), // normalize email to lowercase
-      password,
-      role:      selectedRole,
-      createdAt: new Date().toISOString()
-    };
-  
-    users.push(newUser);
-    saveUsers(users);
-  
-    // Store session WITHOUT password
-    localStorage.setItem('sd_current_user', JSON.stringify(stripPassword(newUser)));
-  
-    showAlert('alert-box', 'Account created. Redirecting...', 'success');
-  
-    setTimeout(() => {
-      window.location.replace(selectedRole === 'admin'
-        ? 'admin-dashboard.html'
-        : 'worker-dashboard.html');
-    }, 1000);
   }
   
   document.addEventListener('DOMContentLoaded', initSignup);
