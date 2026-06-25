@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Submit Feedback - Sales Department</title>
+  <link rel="stylesheet" href="../css/style.css"/>
+  <link rel="stylesheet" href="../css/worker.css"/>
+</head>
+<body class="feedback-body">
+
+  <div class="feedback-wrap">
+
+    <div class="feedback-brand">
+      <div class="brand-logo">SD</div>
+      <span class="brand-name">Sales Department</span>
+    </div>
+
+    <!-- Section: Login Gate -->
+    <div id="login-gate" style="display:none;">
+      <div class="card">
+        <h3>Sign in to submit feedback</h3>
+        <p style="margin-top:4px; margin-bottom:20px;">You need to be signed in so the manager knows who responded.</p>
+
+        <div class="form-group">
+          <label class="form-label" for="gate-email">Work Email</label>
+          <input class="form-input" type="email" id="gate-email" placeholder="you@company.com"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="gate-password">Password</label>
+          <input class="form-input" type="password" id="gate-password" placeholder="Password"/>
+        </div>
+
+        <div id="gate-alert"></div>
+
+        <button class="btn btn-primary btn-full" onclick="gateLogin()">Sign In and Continue</button>
+        <p class="auth-footer" style="margin-top:14px;">No account? <a href="signup.html">Create one</a></p>
+      </div>
+    </div>
+
+    <!-- Section: Task Not Found -->
+    <div id="not-found" style="display:none;">
+      <div class="card" style="text-align:center; padding:48px;">
+        <h3>Task not found</h3>
+        <p style="margin-top:6px;">This link may be invalid or the task has been removed.</p>
+      </div>
+    </div>
+
+    <!-- Section: Already Submitted -->
+    <div id="already-submitted" style="display:none;">
+      <div class="card" style="text-align:center; padding:48px;">
+        <h3>Already submitted</h3>
+        <p style="margin-top:6px;">You have already submitted feedback for this task.</p>
+        <a href="worker-dashboard.html" class="btn btn-outline btn-sm" style="margin-top:16px;">View My Tasks</a>
+      </div>
+    </div>
+
+    <!-- Section: Feedback Form -->
+    <div id="form-section" style="display:none;">
+      <div class="feedback-task-header">
+        <span class="badge badge-purple">Feedback Required</span>
+        <h2 id="task-title"></h2>
+        <p id="task-desc"></p>
+      </div>
+
+      <div class="card">
+        <div id="fields-container"></div>
+        <div id="form-alert"></div>
+        <button class="btn btn-primary btn-full btn-lg" style="margin-top:16px;" onclick="submitFeedback()">Submit Feedback</button>
+      </div>
+    </div>
+
+    <!-- Section: Success -->
+    <div id="success-screen" style="display:none;">
+      <div class="card success-card">
+        <h2>Feedback submitted</h2>
+        <p style="margin-top:8px; margin-bottom:24px;">Your manager has been notified. Thank you for responding.</p>
+        <a href="worker-dashboard.html" class="btn btn-primary">View My Tasks</a>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="../js/utils.js"></script>
+  <script src="../js/worker.js"></script>
+  <script>initFeedbackPage();</script>
+</body>
+</html>

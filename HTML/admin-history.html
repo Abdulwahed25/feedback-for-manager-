@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>History - Sales Department</title>
+  <link rel="stylesheet" href="../css/style.css"/>
+  <link rel="stylesheet" href="../css/admin.css"/>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="navbar-left">
+      <button class="hamburger" onclick="toggleSidebar()" aria-label="Toggle menu">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M3 12h18M3 6h18M3 18h18"/>
+        </svg>
+      </button>
+      <a class="navbar-brand" href="admin-dashboard.html">
+        <div class="navbar-logo">SD</div>
+        <span class="navbar-title">Sales Department</span>
+      </a>
+    </div>
+    <div class="navbar-actions">
+      <div class="navbar-avatar" id="nav-avatar" onclick="logout()" title="Logout"></div>
+    </div>
+  </nav>
+
+  <div class="layout">
+
+    <aside class="sidebar" id="sidebar">
+      <span class="sidebar-label">Main</span>
+      <a class="sidebar-item" href="admin-dashboard.html">
+        <svg class="icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </a>
+      <a class="sidebar-item" href="admin-create-task.html">
+        <svg class="icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
+        New Task
+      </a>
+      <a class="sidebar-item active" href="admin-history.html">
+        <svg class="icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        History
+      </a>
+      <span class="sidebar-label">Account</span>
+      <a class="sidebar-item" href="#" onclick="logout()">
+        <svg class="icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+        Logout
+      </a>
+    </aside>
+
+    <main class="main">
+      <!-- Content is rendered dynamically by admin.js -->
+      <div id="page-content">Loading...</div>
+    </main>
+
+  </div>
+
+  <script src="../js/utils.js"></script>
+  <script src="../js/admin.js"></script>
+  <script>initTaskDetail();</script>
+</body>
+</html>

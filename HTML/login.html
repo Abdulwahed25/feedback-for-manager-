@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login - Sales Department</title>
+  <link rel="stylesheet" href="../css/style.css"/>
+  <link rel="stylesheet" href="../css/auth.css"/>
+</head>
+<body class="auth-body">
+
+  <div class="auth-wrap">
+
+    <!-- Left Panel -->
+    <div class="auth-panel">
+      <div class="brand">
+        <div class="brand-logo">SD</div>
+        <div class="brand-name">Sales Department</div>
+      </div>
+
+      <div class="panel-body">
+        <h2>Keep your team always in the loop.</h2>
+        <p>platform help to send tasks, collect feedback, and track who responded</p>
+        <ul class="panel-features">
+          <li>Manager sends task link from Outlook</li>
+          <li>Workers submit feedback through the portal</li>
+          <li>Manager gets an instant email summary</li>
+        </ul>
+      </div>
+
+      <p class="panel-footer">Sales Department Portal. Internal use only.</p>
+    </div>
+
+    <!-- Right Panel -->
+    <div class="auth-form-panel">
+      <h1>Welcome back</h1>
+      <p class="subtitle">Sign in to your account to continue.</p>
+
+      <div id="alert-box"></div>
+
+      <div class="form-group">
+        <label class="form-label" for="email">Work Email</label>
+        <input class="form-input" type="email" id="email" placeholder="you@company.com" autocomplete="email"/>
+      </div>
+
+      <div class="form-group">
+        <div class="label-row">
+          <label class="form-label" for="password">Password</label>
+          <a href="#" class="forgot-link">Forgot password?</a>
+        </div>
+        <div class="password-wrap">
+          <input class="form-input" type="password" id="password" placeholder="Password" autocomplete="current-password"/>
+          <button class="toggle-pw" id="toggle-pw-btn" type="button" onclick="togglePassword()">Show</button>
+        </div>
+      </div>
+
+      <button class="btn btn-primary btn-full btn-lg" onclick="handleLogin()">Sign In</button>
+
+      <p class="auth-footer">Do not have an account? <a href="signup.html">Create one</a></p>
+    </div>
+
+  </div>
+
+  <script src="../js/utils.js"></script>
+  <script src="../js/auth.js"></script>
+</body>
+</html>

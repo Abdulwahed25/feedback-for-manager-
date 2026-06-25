@@ -1,0 +1,227 @@
+/* 
+   worker.css
+   Worker dashboard and feedback form styles
+    */
+
+   .navbar-left { display: flex; align-items: center; gap: 12px; }
+
+   .tabs {
+     display: flex;
+     gap: 4px;
+     background: var(--grey-100);
+     padding: 4px;
+     border-radius: var(--radius-sm);
+     margin-bottom: 20px;
+     width: fit-content;
+   }
+   
+   .tab {
+     padding: 8px 20px;
+     border-radius: 6px;
+     font-size: 0.88rem;
+     font-weight: 500;
+     cursor: pointer;
+     color: var(--grey-600);
+     transition: all var(--transition);
+     border: none;
+     background: none;
+     font-family: var(--font-body);
+   }
+   
+   .tab.active {
+     background: var(--white);
+     color: var(--grey-900);
+     box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+   }
+   
+   .task-list { display: flex; flex-direction: column; gap: 10px; }
+   
+   .task-card-worker {
+     background: var(--white);
+     border: 1px solid var(--grey-100);
+     border-radius: var(--radius-md);
+     padding: 0;
+     display: flex;
+     align-items: center;
+     gap: 0;
+     transition: all var(--transition);
+     text-decoration: none;
+     color: inherit;
+     overflow: hidden;
+   }
+   
+   .task-card-worker:hover {
+     box-shadow: var(--shadow-md);
+     border-color: var(--purple-100);
+     transform: translateY(-1px);
+   }
+   
+   .task-card-worker.done { cursor: default; }
+   .task-card-worker.done:hover { transform: none; box-shadow: var(--shadow-sm); }
+   
+   .task-status-bar {
+     width: 4px;
+     align-self: stretch;
+     flex-shrink: 0;
+   }
+   
+   .task-status-bar.pending { background: var(--warning); }
+   .task-status-bar.done    { background: var(--success); }
+   
+   .task-card-worker .task-info {
+     flex: 1;
+     padding: 16px 20px;
+     min-width: 0;
+   }
+   
+   .task-card-worker .task-title {
+     font-weight: 600;
+     font-size: 0.95rem;
+     color: var(--grey-900);
+     margin-bottom: 4px;
+     white-space: nowrap;
+     overflow: hidden;
+     text-overflow: ellipsis;
+   }
+   
+   .task-card-worker .task-meta {
+     font-size: 0.8rem;
+     color: var(--grey-400);
+   }
+   
+   .task-card-worker .badge { margin-right: 20px; flex-shrink: 0; }
+   
+   /* ---- Feedback Form ---- */
+   .feedback-body {
+     background: var(--purple-50);
+     min-height: 100vh;
+     padding: 32px 20px;
+   }
+   
+   .feedback-wrap {
+     max-width: 620px;
+     margin: 0 auto;
+     display: flex;
+     flex-direction: column;
+     gap: 20px;
+   }
+   
+   .feedback-brand {
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     gap: 10px;
+     margin-bottom: 4px;
+   }
+   
+   .feedback-brand .brand-logo {
+     width: 36px;
+     height: 36px;
+     background: var(--purple-600);
+     border-radius: 8px;
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     font-family: var(--font-display);
+     font-weight: 800;
+     color: white;
+     font-size: 0.85rem;
+   }
+   
+   .feedback-brand .brand-name {
+     font-family: var(--font-display);
+     font-weight: 700;
+     color: var(--grey-900);
+     font-size: 1rem;
+   }
+   
+   .feedback-task-header {
+     background: linear-gradient(135deg, var(--purple-900), var(--purple-600));
+     border-radius: var(--radius-lg);
+     padding: 24px 28px;
+     color: white;
+   }
+   
+   .feedback-task-header .badge { background: rgba(255,255,255,0.15); color: white; margin-bottom: 10px; }
+   .feedback-task-header h2 { color: white; font-size: 1.3rem; margin-bottom: 4px; }
+   .feedback-task-header p  { color: rgba(255,255,255,0.7); font-size: 0.88rem; }
+   
+   /* ---- Rating ---- */
+   .rating-group { display: flex; gap: 8px; }
+   
+   .rating-btn {
+     width: 44px;
+     height: 44px;
+     border: 2px solid var(--grey-200);
+     border-radius: var(--radius-sm);
+     background: var(--white);
+     cursor: pointer;
+     font-size: 0.95rem;
+     font-weight: 600;
+     color: var(--grey-400);
+     transition: all var(--transition);
+     font-family: var(--font-body);
+   }
+   
+   .rating-btn:hover,
+   .rating-btn.selected {
+     border-color: var(--purple-600);
+     background: var(--purple-50);
+     color: var(--purple-700);
+   }
+   
+   /* ---- Yes / No ---- */
+   .yesno-group { display: flex; gap: 12px; }
+   
+   .yesno-btn {
+     flex: 1;
+     padding: 12px;
+     border: 2px solid var(--grey-200);
+     border-radius: var(--radius-sm);
+     background: var(--white);
+     cursor: pointer;
+     font-size: 0.9rem;
+     font-weight: 600;
+     color: var(--grey-400);
+     transition: all var(--transition);
+     text-align: center;
+     font-family: var(--font-body);
+   }
+   
+   .yesno-btn:hover          { border-color: var(--purple-500); }
+   .yesno-btn.yes.selected   { border-color: var(--success); background: #ECFDF3; color: #027A48; }
+   .yesno-btn.no.selected    { border-color: var(--danger);  background: #FEF3F2; color: #B42318; }
+   
+   /* ---- Checkbox ---- */
+   .checkbox-label {
+     display: flex;
+     gap: 10px;
+     align-items: center;
+     cursor: pointer;
+     font-size: 0.9rem;
+     color: var(--grey-600);
+   }
+   
+   .checkbox-label input[type="checkbox"] {
+     width: 18px;
+     height: 18px;
+     accent-color: var(--purple-600);
+     flex-shrink: 0;
+   }
+   
+   /* ---- Success ---- */
+   .success-card {
+     text-align: center;
+     padding: 48px 32px;
+   }
+   
+   .success-card h2 { margin-bottom: 8px; }
+   
+   .auth-footer { text-align: center; font-size: 0.875rem; color: var(--grey-400); }
+   .auth-footer a { color: var(--purple-600); font-weight: 600; }
+   
+   /* ---- Responsive ---- */
+   @media (max-width: 480px) {
+     .feedback-body { padding: 16px 12px; }
+     .rating-btn    { width: 38px; height: 38px; font-size: 0.85rem; }
+   }

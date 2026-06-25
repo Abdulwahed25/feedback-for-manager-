@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sign Up - Sales Department</title>
+  <link rel="stylesheet" href="../css/style.css"/>
+  <link rel="stylesheet" href="../css/auth.css"/>
+</head>
+<body class="auth-body">
+
+  <div class="auth-wrap signup-wrap">
+
+    <div class="auth-top">
+      <div class="brand">
+        <div class="brand-logo">SD</div>
+        <div class="brand-name">Sales Department</div>
+      </div>
+      <h1>Create your account</h1>
+      <p>Join your team's feedback portal.</p>
+    </div>
+
+    <div class="auth-card">
+      <div id="alert-box"></div>
+
+      <!-- Role Selection -->
+      <div class="form-group">
+        <label class="form-label">I am a</label>
+      </div>
+      <div class="role-select">
+        <div class="role-card selected" id="role-admin" onclick="selectRole('admin')">
+          <div class="role-title">Manager</div>
+          <div class="role-desc">Create tasks and view feedback</div>
+        </div>
+        <div class="role-card" id="role-worker" onclick="selectRole('worker')">
+          <div class="role-title">Worker</div>
+          <div class="role-desc">Submit feedback on tasks</div>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div class="form-group">
+          <label class="form-label" for="fname">First Name</label>
+          <input class="form-input" type="text" id="fname" placeholder="Ahmed"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="lname">Last Name</label>
+          <input class="form-input" type="text" id="lname" placeholder="Al-Rashid"/>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="email">Work Email</label>
+        <input class="form-input" type="email" id="email" placeholder="you@company.com"/>
+      </div>
+
+      <div class="notify-info">
+        Feedback notifications will be sent to this email address. Make sure it is correct.
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="password">Password</label>
+        <div class="password-wrap">
+          <input class="form-input" type="password" id="password" placeholder="Min. 8 characters" oninput="checkPasswordStrength(this.value)"/>
+          <button class="toggle-pw" id="toggle-pw-btn" type="button" onclick="togglePassword()">Show</button>
+        </div>
+        <div class="strength-bar"><div class="strength-fill" id="strength-fill"></div></div>
+        <span class="form-hint" id="strength-label">Enter a password</span>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="confirm">Confirm Password</label>
+        <input class="form-input" type="password" id="confirm" placeholder="Repeat password"/>
+      </div>
+
+      <button class="btn btn-primary btn-full btn-lg" onclick="handleSignup()">Create Account</button>
+
+      <p class="auth-footer">Already have an account? <a href="login.html">Sign in</a></p>
+    </div>
+
+  </div>
+
+  <script src="../js/utils.js"></script>
+  <script src="../js/auth.js"></script>
+</body>
+</html>
