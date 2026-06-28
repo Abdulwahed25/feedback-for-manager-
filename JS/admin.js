@@ -649,9 +649,12 @@ async function initDashboard() {
         pending.forEach(w => {
           const item  = document.createElement('div');
           item.className = 'pending-item';
+  
           const dot   = document.createElement('div');
           dot.className = 'pending-dot';
+  
           const info  = document.createElement('div');
+          info.style.flex = '1';
           const wName = document.createElement('div');
           wName.className = 'pending-name';
           wName.textContent = w.name;
@@ -660,8 +663,35 @@ async function initDashboard() {
           wEmail.textContent = w.email;
           info.appendChild(wName);
           info.appendChild(wEmail);
+  
+          const reminderBtn = document.createElement('button');
+          reminderBtn.className = 'btn btn-outline btn-sm';
+          reminderBtn.textContent = 'Send Reminder';
+          reminderBtn.style.flexShrink = '0';
+          reminderBtn.addEventListener('click', (function(tId, wId, btn) {
+            return async function() {
+              btn.disabled = true;
+              btn.textContent = 'Sending...';
+              try {
+                const res = await apiPost('/feedback/send_reminder.php', { task_id: tId, worker_id: wId });
+                if (res.success) {
+                  btn.textContent = 'Sent';
+                  btn.style.color = 'var(--success)';
+                  btn.style.borderColor = 'var(--success)';
+                } else {
+                  btn.textContent = res.message || 'Failed';
+                  btn.disabled = false;
+                }
+              } catch(e) {
+                btn.textContent = 'Error';
+                btn.disabled = false;
+              }
+            };
+          })(task.id, w.id, reminderBtn));
+  
           item.appendChild(dot);
           item.appendChild(info);
+          item.appendChild(reminderBtn);
           pendingEl.appendChild(item);
         });
       }

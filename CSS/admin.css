@@ -267,9 +267,10 @@
      color: rgba(255,255,255,0.6);
    }
    
+   /* Fixed: wider pending column to fit Send Reminder button */
    .detail-two-col {
      display: grid;
-     grid-template-columns: 1fr 260px;
+     grid-template-columns: 1fr 320px;
      gap: 24px;
      align-items: start;
    }
@@ -318,12 +319,14 @@
    .answer-q { font-size: 0.78rem; font-weight: 600; color: var(--grey-400); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; }
    .answer-a { font-size: 0.9rem; color: var(--grey-900); }
    
+   /* Fixed: flex-wrap so Send Reminder button wraps cleanly on small cards */
    .pending-item {
      display: flex;
      align-items: center;
      gap: 10px;
-     padding: 10px 0;
+     padding: 12px 0;
      border-bottom: 1px solid var(--grey-100);
+     flex-wrap: wrap;
    }
    
    .pending-item:last-child { border-bottom: none; }

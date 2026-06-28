@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Settings - Sales Department</title>
+  <link rel="stylesheet" href="../css/style.css"/>
+  <link rel="stylesheet" href="../css/admin.css"/>
+  <style>
+    .day-selector { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+    .day-btn {
+      width: 44px; height: 44px;
+      border: 2px solid var(--grey-200);
+      border-radius: var(--radius-sm);
+      background: var(--white);
+      cursor: pointer;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--grey-400);
+      font-family: var(--font-body);
+      transition: all var(--transition);
+    }
+    .day-btn.selected {
+      border-color: var(--purple-600);
+      background: var(--purple-50);
+      color: var(--purple-700);
+    }
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 0;
+      border-bottom: 1px solid var(--grey-100);
+    }
+    .toggle-row:last-child { border-bottom: none; }
+    .toggle-label { font-size: 0.9rem; font-weight: 500; color: var(--grey-900); }
+    .toggle-desc  { font-size: 0.8rem; color: var(--grey-400); margin-top: 2px; }
+    .toggle {
+      width: 44px; height: 24px;
+      border-radius: 100px;
+      background: var(--grey-200);
+      cursor: pointer;
+      position: relative;
+      border: none;
+      transition: background var(--transition);
+      flex-shrink: 0;
+    }
+    .toggle.on { background: var(--purple-600); }
+    .toggle::after {
+      content: '';
+      position: absolute;
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      background: white;
+      top: 3px; left: 3px;
+      transition: left var(--transition);
+    }
+    .toggle.on::after { left: 23px; }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="navbar-left">
+    <button class="hamburger" onclick="toggleSidebar()">
+      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+    </button>
+    <a class="navbar-brand" href="admin-dashboard.html">
+      <div class="navbar-logo">SD</div>
+      <span class="navbar-title">Sales Department</span>
+    </a>
+  </div>
+  <div class="navbar-actions">
+    <div class="navbar-avatar" id="nav-avatar" onclick="logout()" title="Logout"></div>
+  </div>
+</nav>
+
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+    <span class="sidebar-label">Main</span>
+    <a class="sidebar-item" href="admin-dashboard.html">
+      <svg class="icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </a>
+    <a class="sidebar-item" href="admin-daily-notes.html">
+      <svg class="icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+      Daily Notes
+    </a>
+    <a class="sidebar-item active" href="admin-settings.html">
+      <svg class="icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      Settings
+    </a>
+    <span class="sidebar-label">Account</span>
+    <a class="sidebar-item" href="#" onclick="logout()">
+      <svg class="icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+      Logout
+    </a>
+  </aside>
+
+  <main class="main" style="max-width:640px;">
+    <div class="page-header">
+      <h2>Settings</h2>
+      <p>Configure daily note reminders for your team.</p>
+    </div>
+
+    <div id="alert-box"></div>
+
+    <div class="card">
+      <h3 style="margin-bottom:20px;">Daily Reminder Settings</h3>
+
+      <!-- Reminder Time -->
+      <div class="form-group">
+        <label class="form-label">Reminder Time</label>
+        <input class="form-input" type="time" id="reminder-time" value="15:00" style="width:160px;"/>
+        <span class="form-hint">Workers will receive a reminder email at this time if they have not submitted their notes.</span>
+      </div>
+
+      <!-- Days -->
+      <div class="form-group">
+        <label class="form-label">Reminder Days</label>
+        <div class="day-selector">
+          <button class="day-btn selected" data-day="0" onclick="toggleDay(this)">Sun</button>
+          <button class="day-btn selected" data-day="1" onclick="toggleDay(this)">Mon</button>
+          <button class="day-btn selected" data-day="2" onclick="toggleDay(this)">Tue</button>
+          <button class="day-btn selected" data-day="3" onclick="toggleDay(this)">Wed</button>
+          <button class="day-btn selected" data-day="4" onclick="toggleDay(this)">Thu</button>
+          <button class="day-btn" data-day="5" onclick="toggleDay(this)">Fri</button>
+          <button class="day-btn" data-day="6" onclick="toggleDay(this)">Sat</button>
+        </div>
+      </div>
+
+      <hr class="divider"/>
+
+      <!-- Email digest toggle -->
+      <div class="toggle-row">
+        <div>
+          <div class="toggle-label">Daily Email Digest</div>
+          <div class="toggle-desc">Receive a summary email of your team's daily notes at the reminder time.</div>
+        </div>
+        <button class="toggle on" id="email-digest-toggle" onclick="toggleEmailDigest(this)"></button>
+      </div>
+
+      <div style="margin-top:24px;">
+        <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="../js/utils.js"></script>
+<script src="../js/admin-settings.js"></script>
+<script>initSettings();</script>
+</body>
+</html>

@@ -4,7 +4,7 @@
    Returns list of all workers — admin only
    ============================================= */
 
-require_once '../../backend/config.php';
+require_once '../config.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') { sendError('Method not allowed.', 405); }
 

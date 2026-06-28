@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Daily Notes - Sales Department</title>
+  <link rel="stylesheet" href="../css/style.css"/>
+  <link rel="stylesheet" href="../css/admin.css"/>
+  <style>
+    .date-nav {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+    .date-nav select {
+      padding: 10px 14px;
+      border: 1.5px solid var(--grey-200);
+      border-radius: var(--radius-sm);
+      font-family: var(--font-body);
+      font-size: 0.9rem;
+      color: var(--grey-900);
+      background: var(--white);
+      outline: none;
+      cursor: pointer;
+    }
+
+    .worker-note-card {
+      background: var(--white);
+      border: 1px solid var(--grey-100);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+
+    .worker-note-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--grey-100);
+    }
+
+    .worker-note-avatar {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: var(--purple-100);
+      color: var(--purple-700);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 0.85rem; flex-shrink: 0;
+    }
+
+    .worker-note-body { padding: 16px 20px; }
+
+    .note-fields {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .note-field {
+      background: var(--grey-50);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+    }
+
+    .note-field-label { font-size: 0.72rem; font-weight: 600; color: var(--grey-400); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+    .note-field-value { font-size: 0.9rem; font-weight: 600; color: var(--grey-900); }
+    .note-field-value.yes { color: var(--success); }
+    .note-field-value.no  { color: var(--grey-400); }
+
+    .note-text { font-size: 0.88rem; color: var(--grey-600); line-height: 1.6; padding-top: 12px; border-top: 1px solid var(--grey-100); }
+
+    .not-submitted {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 16px 20px;
+      color: var(--grey-400);
+      font-size: 0.88rem;
+    }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="navbar-left">
+    <button class="hamburger" onclick="toggleSidebar()">
+      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+    </button>
+    <a class="navbar-brand" href="admin-dashboard.html">
+      <div class="navbar-logo">SD</div>
+      <span class="navbar-title">Sales Department</span>
+    </a>
+  </div>
+  <div class="navbar-actions">
+    <div class="navbar-avatar" id="nav-avatar" onclick="logout()" title="Logout"></div>
+  </div>
+</nav>
+
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+    <span class="sidebar-label">Main</span>
+    <a class="sidebar-item" href="admin-dashboard.html">
+      <svg class="icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </a>
+    <a class="sidebar-item" href="admin-create-task.html">
+      <svg class="icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
+      New Task
+    </a>
+    <a class="sidebar-item active" href="admin-daily-notes.html">
+      <svg class="icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+      Daily Notes
+    </a>
+    <a class="sidebar-item" href="admin-history.html">
+      <svg class="icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      History
+    </a>
+    <a class="sidebar-item" href="admin-users.html">
+      <svg class="icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+      Manage Users
+    </a>
+    <a class="sidebar-item" href="admin-settings.html">
+      <svg class="icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      Settings
+    </a>
+    <span class="sidebar-label">Account</span>
+    <a class="sidebar-item" href="#" onclick="logout()">
+      <svg class="icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+      Logout
+    </a>
+  </aside>
+
+  <main class="main">
+    <div class="page-header">
+      <h2>Daily Sales Notes</h2>
+      <p>View your team's daily sales activity and notes.</p>
+    </div>
+
+    <!-- Date navigation -->
+    <div class="date-nav">
+      <label style="font-size:0.88rem;font-weight:500;color:var(--grey-600);">Viewing notes for:</label>
+      <select id="date-select" onchange="loadNotes(this.value)"></select>
+      <input type="date" id="date-picker" class="form-input" style="width:auto;" onchange="loadNotes(this.value)"/>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row" style="margin-bottom:24px;" id="stats-row">
+      <div class="stat-card purple">
+        <span class="stat-label">Submitted</span>
+        <span class="stat-value" id="stat-submitted">0</span>
+        <span class="stat-sub" id="stat-submitted-sub">out of 0 workers</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">New Customers</span>
+        <span class="stat-value" id="stat-customers">0</span>
+        <span class="stat-sub">Today</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">New Quotations</span>
+        <span class="stat-value" id="stat-quotations">0</span>
+        <span class="stat-sub">Today</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Total Quotation Value</span>
+        <span class="stat-value" id="stat-value" style="font-size:1.3rem;">--</span>
+        <span class="stat-sub">SAR</span>
+      </div>
+    </div>
+
+    <!-- Workers notes -->
+    <div id="notes-container"><p style="color:var(--grey-400);">Loading...</p></div>
+
+  </main>
+</div>
+
+<script src="../js/utils.js"></script>
+<script src="../js/admin-daily-notes.js"></script>
+<script>initAdminDailyNotes();</script>
+</body>
+</html>

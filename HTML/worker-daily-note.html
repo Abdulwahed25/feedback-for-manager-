@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Daily Notes - Sales Department</title>
+  <link rel="stylesheet" href="../css/style.css"/>
+  <link rel="stylesheet" href="../css/worker.css"/>
+  <style>
+    .note-date-bar {
+      background: var(--white);
+      border: 1px solid var(--grey-100);
+      border-radius: var(--radius-md);
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .note-date-label { font-size: 0.85rem; color: var(--grey-400); font-weight: 500; }
+    .note-date-value { font-family: var(--font-display); font-size: 1.1rem; font-weight: 700; color: var(--grey-900); }
+
+    .yes-no-group { display: flex; gap: 12px; margin-top: 6px; }
+    .yes-no-btn {
+      flex: 1;
+      padding: 12px;
+      border: 2px solid var(--grey-200);
+      border-radius: var(--radius-sm);
+      background: var(--white);
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--grey-400);
+      font-family: var(--font-body);
+      transition: all var(--transition);
+      text-align: center;
+    }
+    .yes-no-btn.yes.selected { border-color: var(--success); background: #ECFDF3; color: #027A48; }
+    .yes-no-btn.no.selected  { border-color: var(--danger);  background: #FEF3F2; color: #B42318; }
+    .yes-no-btn:hover        { border-color: var(--purple-500); }
+
+    .conditional-field {
+      margin-top: 12px;
+      padding: 14px;
+      background: var(--grey-50);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--grey-200);
+      display: none;
+    }
+    .conditional-field.visible { display: block; }
+
+    .save-indicator {
+      font-size: 0.82rem;
+      color: var(--success);
+      font-weight: 500;
+      display: none;
+    }
+
+    .history-item {
+      background: var(--white);
+      border: 1px solid var(--grey-100);
+      border-radius: var(--radius-md);
+      padding: 16px 20px;
+      margin-bottom: 10px;
+    }
+    .history-date { font-weight: 700; font-size: 0.9rem; color: var(--grey-900); margin-bottom: 10px; }
+    .history-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+    .history-note { font-size: 0.85rem; color: var(--grey-600); }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="navbar-left">
+    <button class="hamburger" onclick="toggleSidebar()">
+      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+    </button>
+    <a class="navbar-brand" href="worker-dashboard.html">
+      <div class="navbar-logo">SD</div>
+      <span class="navbar-title">Sales Department</span>
+    </a>
+  </div>
+  <div class="navbar-actions">
+    <div class="navbar-avatar" id="nav-avatar" onclick="logout()" title="Logout"></div>
+  </div>
+</nav>
+
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+    <span class="sidebar-label">Main</span>
+    <a class="sidebar-item" href="worker-dashboard.html">
+      <svg class="icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      My Tasks
+    </a>
+    <a class="sidebar-item active" href="worker-daily-note.html">
+      <svg class="icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+      Daily Notes
+    </a>
+    <span class="sidebar-label">Account</span>
+    <a class="sidebar-item" href="#" onclick="logout()">
+      <svg class="icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+      Logout
+    </a>
+  </aside>
+
+  <main class="main">
+    <div class="page-header">
+      <h2>Daily Sales Notes</h2>
+      <p>Record your daily sales activity. You can update your notes anytime throughout the day.</p>
+    </div>
+
+    <div id="alert-box"></div>
+
+    <!-- Date bar -->
+    <div class="note-date-bar">
+      <div>
+        <div class="note-date-label">Submitting notes for</div>
+        <div class="note-date-value" id="display-date"></div>
+      </div>
+      <span class="save-indicator" id="save-indicator">Saved</span>
+    </div>
+
+    <!-- Note form -->
+    <div class="card" style="margin-bottom:20px;">
+
+      <!-- New Customer -->
+      <div class="form-group">
+        <label class="form-label">Did you get a new customer today?</label>
+        <div class="yes-no-group">
+          <button type="button" class="yes-no-btn yes" id="customer-yes" onclick="selectYesNo('customer', true)">Yes</button>
+          <button type="button" class="yes-no-btn no"  id="customer-no"  onclick="selectYesNo('customer', false)">No</button>
+        </div>
+        <div class="conditional-field" id="customer-name-field">
+          <label class="form-label" style="margin-bottom:6px;">Customer Name</label>
+          <input class="form-input" type="text" id="customer-name" placeholder="Enter customer name" maxlength="200"/>
+        </div>
+      </div>
+
+      <!-- New Quotation -->
+      <div class="form-group">
+        <label class="form-label">Did you receive a new quotation request today?</label>
+        <div class="yes-no-group">
+          <button type="button" class="yes-no-btn yes" id="quotation-yes" onclick="selectYesNo('quotation', true)">Yes</button>
+          <button type="button" class="yes-no-btn no"  id="quotation-no"  onclick="selectYesNo('quotation', false)">No</button>
+        </div>
+        <div class="conditional-field" id="quotation-value-field">
+          <label class="form-label" style="margin-bottom:6px;">Estimated Quotation Value (SAR)</label>
+          <input class="form-input" type="number" id="quotation-value" placeholder="e.g. 15000" min="0" max="999999999" step="0.01"/>
+        </div>
+      </div>
+
+      <!-- Notes -->
+      <div class="form-group" style="margin-bottom:0;">
+        <label class="form-label">Additional Notes</label>
+        <textarea class="form-textarea" id="notes" placeholder="Any other notes, updates, or important information from today..." maxlength="3000" style="min-height:120px;"></textarea>
+        <span class="form-hint" id="notes-count">0 / 3000</span>
+      </div>
+
+    </div>
+
+    <button class="btn btn-primary btn-lg" id="save-btn" onclick="saveNote()">Save Today's Notes</button>
+
+    <!-- History -->
+    <div style="margin-top:32px;">
+      <h3 style="margin-bottom:16px;">Previous Notes</h3>
+      <div id="history-list"><p style="color:var(--grey-400);font-size:0.88rem;">Loading history...</p></div>
+    </div>
+
+  </main>
+</div>
+
+<script src="../js/utils.js"></script>
+<script src="../js/worker-daily-note.js"></script>
+<script>initDailyNote();</script>
+</body>
+</html>

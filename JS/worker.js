@@ -99,7 +99,6 @@ function renderWorkerList(tab) {
 // ---- WORKER FEEDBACK FORM ----
 
 let _currentTask = null;
-let _currentUser = null;
 const _fieldAnswers = {};
 
 async function initFeedbackPage() {
