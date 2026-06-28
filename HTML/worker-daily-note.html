@@ -22,41 +22,53 @@
     .note-date-label { font-size: 0.85rem; color: var(--grey-400); font-weight: 500; }
     .note-date-value { font-family: var(--font-display); font-size: 1.1rem; font-weight: 700; color: var(--grey-900); }
 
-    .yes-no-group { display: flex; gap: 12px; margin-top: 6px; }
-    .yes-no-btn {
-      flex: 1;
-      padding: 12px;
+    .save-indicator { font-size: 0.82rem; color: var(--success); font-weight: 500; display: none; }
+
+    .counter-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 8px;
+    }
+    .counter-btn {
+      width: 36px; height: 36px;
       border: 2px solid var(--grey-200);
       border-radius: var(--radius-sm);
       background: var(--white);
       cursor: pointer;
-      font-size: 0.9rem;
-      font-weight: 600;
-      color: var(--grey-400);
-      font-family: var(--font-body);
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--grey-600);
+      display: flex; align-items: center; justify-content: center;
       transition: all var(--transition);
+      flex-shrink: 0;
+    }
+    .counter-btn:hover { border-color: var(--purple-500); color: var(--purple-700); }
+    .counter-value {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--grey-900);
+      min-width: 32px;
       text-align: center;
     }
-    .yes-no-btn.yes.selected { border-color: var(--success); background: #ECFDF3; color: #027A48; }
-    .yes-no-btn.no.selected  { border-color: var(--danger);  background: #FEF3F2; color: #B42318; }
-    .yes-no-btn:hover        { border-color: var(--purple-500); }
 
-    .conditional-field {
-      margin-top: 12px;
-      padding: 14px;
+    .entry-card {
       background: var(--grey-50);
-      border-radius: var(--radius-sm);
       border: 1px solid var(--grey-200);
-      display: none;
+      border-radius: var(--radius-sm);
+      padding: 14px 16px;
+      margin-top: 10px;
     }
-    .conditional-field.visible { display: block; }
-
-    .save-indicator {
-      font-size: 0.82rem;
-      color: var(--success);
-      font-weight: 500;
-      display: none;
+    .entry-card-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--grey-400);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 10px;
     }
+    .entry-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    @media (max-width: 600px) { .entry-fields { grid-template-columns: 1fr; } }
 
     .history-item {
       background: var(--white);
@@ -67,7 +79,7 @@
     }
     .history-date { font-weight: 700; font-size: 0.9rem; color: var(--grey-900); margin-bottom: 10px; }
     .history-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
-    .history-note { font-size: 0.85rem; color: var(--grey-600); }
+    .history-note { font-size: 0.85rem; color: var(--grey-600); margin-top: 8px; border-top: 1px solid var(--grey-100); padding-top: 8px; }
   </style>
 </head>
 <body>
@@ -113,48 +125,42 @@
 
     <div id="alert-box"></div>
 
-    <!-- Date bar -->
     <div class="note-date-bar">
       <div>
         <div class="note-date-label">Submitting notes for</div>
         <div class="note-date-value" id="display-date"></div>
       </div>
-      <span class="save-indicator" id="save-indicator">Saved</span>
+      <span class="save-indicator" id="save-indicator">✓ Saved</span>
     </div>
 
-    <!-- Note form -->
-    <div class="card" style="margin-bottom:20px;">
+    <div class="card" style="margin-bottom:16px;">
 
-      <!-- New Customer -->
+      <!-- New Customers -->
       <div class="form-group">
-        <label class="form-label">Did you get a new customer today?</label>
-        <div class="yes-no-group">
-          <button type="button" class="yes-no-btn yes" id="customer-yes" onclick="selectYesNo('customer', true)">Yes</button>
-          <button type="button" class="yes-no-btn no"  id="customer-no"  onclick="selectYesNo('customer', false)">No</button>
+        <label class="form-label">How many new customers did you get today?</label>
+        <div class="counter-row">
+          <button class="counter-btn" onclick="changeCount('customers', -1)">−</button>
+          <span class="counter-value" id="customers-count">0</span>
+          <button class="counter-btn" onclick="changeCount('customers', 1)">+</button>
         </div>
-        <div class="conditional-field" id="customer-name-field">
-          <label class="form-label" style="margin-bottom:6px;">Customer Name</label>
-          <input class="form-input" type="text" id="customer-name" placeholder="Enter customer name" maxlength="200"/>
-        </div>
+        <div id="customers-entries"></div>
       </div>
 
-      <!-- New Quotation -->
+      <!-- New Quotations -->
       <div class="form-group">
-        <label class="form-label">Did you receive a new quotation request today?</label>
-        <div class="yes-no-group">
-          <button type="button" class="yes-no-btn yes" id="quotation-yes" onclick="selectYesNo('quotation', true)">Yes</button>
-          <button type="button" class="yes-no-btn no"  id="quotation-no"  onclick="selectYesNo('quotation', false)">No</button>
+        <label class="form-label">How many new quotation requests did you receive today?</label>
+        <div class="counter-row">
+          <button class="counter-btn" onclick="changeCount('quotations', -1)">−</button>
+          <span class="counter-value" id="quotations-count">0</span>
+          <button class="counter-btn" onclick="changeCount('quotations', 1)">+</button>
         </div>
-        <div class="conditional-field" id="quotation-value-field">
-          <label class="form-label" style="margin-bottom:6px;">Estimated Quotation Value (SAR)</label>
-          <input class="form-input" type="number" id="quotation-value" placeholder="e.g. 15000" min="0" max="999999999" step="0.01"/>
-        </div>
+        <div id="quotations-entries"></div>
       </div>
 
-      <!-- Notes -->
+      <!-- Additional Notes (required) -->
       <div class="form-group" style="margin-bottom:0;">
-        <label class="form-label">Additional Notes</label>
-        <textarea class="form-textarea" id="notes" placeholder="Any other notes, updates, or important information from today..." maxlength="3000" style="min-height:120px;"></textarea>
+        <label class="form-label">Additional Notes <span class="req">*</span></label>
+        <textarea class="form-textarea" id="notes" placeholder="Summary of your day, any important updates, follow-ups needed..." maxlength="3000" style="min-height:120px;" oninput="document.getElementById('notes-count').textContent=this.value.length+' / 3000'"></textarea>
         <span class="form-hint" id="notes-count">0 / 3000</span>
       </div>
 
@@ -162,10 +168,9 @@
 
     <button class="btn btn-primary btn-lg" id="save-btn" onclick="saveNote()">Save Today's Notes</button>
 
-    <!-- History -->
     <div style="margin-top:32px;">
       <h3 style="margin-bottom:16px;">Previous Notes</h3>
-      <div id="history-list"><p style="color:var(--grey-400);font-size:0.88rem;">Loading history...</p></div>
+      <div id="history-list"><p style="color:var(--grey-400);font-size:0.88rem;">Loading...</p></div>
     </div>
 
   </main>

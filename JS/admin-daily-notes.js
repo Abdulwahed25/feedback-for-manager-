@@ -1,155 +1,225 @@
 /* =============================================
-   admin-daily-notes.js
-   Admin daily notes page
+   worker-daily-note.js
    ============================================= */
 
-   async function initAdminDailyNotes() {
-    const user = await requireAdmin();
-    if (!user) return;
-    setNavbar(user);
-  
-    // Set today's date in picker
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('date-picker').value = today;
-  
-    await loadNotes(today);
-  }
-  
-  async function loadNotes(date) {
-    const container = document.getElementById('notes-container');
-    container.innerHTML = '<p style="color:var(--grey-400);">Loading...</p>';
-  
-    try {
-      const res = await apiGet(`/daily/get_all_notes.php?date=${encodeURIComponent(date)}`);
-      if (!res.success) { container.innerHTML = `<p style="color:var(--danger);">${escapeHTML(res.message)}</p>`; return; }
-  
-      const { workers, notes, dates, stats } = res.data;
-  
-      // Update stats
-      document.getElementById('stat-submitted').textContent     = stats.submitted || 0;
-      document.getElementById('stat-submitted-sub').textContent = `out of ${workers.length} workers`;
-      document.getElementById('stat-customers').textContent     = stats.new_customers || 0;
-      document.getElementById('stat-quotations').textContent    = stats.new_quotations || 0;
-      document.getElementById('stat-value').textContent         = stats.total_value
-        ? 'SAR ' + parseFloat(stats.total_value).toLocaleString('en-SA', { minimumFractionDigits: 0 })
-        : '--';
-  
-      // Populate date dropdown
-      const select = document.getElementById('date-select');
-      select.innerHTML = '';
-      const todayOpt = document.createElement('option');
-      todayOpt.value = new Date().toISOString().split('T')[0];
-      todayOpt.textContent = 'Today';
-      select.appendChild(todayOpt);
-  
-      dates.forEach(d => {
-        if (d === todayOpt.value) return;
-        const opt = document.createElement('option');
-        opt.value = d;
-        opt.textContent = formatDate(d);
-        select.appendChild(opt);
-      });
-      select.value = date;
-  
-      // Build notes map
-      const notesMap = {};
-      notes.forEach(n => { notesMap[n.worker_id] = n; });
-  
-      container.innerHTML = '';
-  
-      workers.forEach(worker => {
-        const note   = notesMap[worker.id];
-        const card   = document.createElement('div');
-        card.className = 'worker-note-card';
-  
-        const header = document.createElement('div');
-        header.className = 'worker-note-header';
-  
-        const avatar = document.createElement('div');
-        avatar.className = 'worker-note-avatar';
-        avatar.textContent = worker.name.charAt(0).toUpperCase();
-  
-        const nameBlock = document.createElement('div');
-        nameBlock.style.flex = '1';
-  
-        const name = document.createElement('div');
-        name.style.cssText = 'font-weight:600;font-size:0.95rem;color:var(--grey-900);';
-        name.textContent = worker.name;
-  
-        const email = document.createElement('div');
-        email.style.cssText = 'font-size:0.8rem;color:var(--grey-400);';
-        email.textContent = worker.email;
-  
-        nameBlock.appendChild(name);
-        nameBlock.appendChild(email);
-  
-        const badge = document.createElement('span');
-        badge.className = `badge ${note ? 'badge-success' : 'badge-warning'}`;
-        badge.textContent = note ? 'Submitted' : 'Not submitted';
-  
-        header.appendChild(avatar);
-        header.appendChild(nameBlock);
-        header.appendChild(badge);
-        card.appendChild(header);
-  
-        if (note) {
-          const body = document.createElement('div');
-          body.className = 'worker-note-body';
-  
-          const fields = document.createElement('div');
-          fields.className = 'note-fields';
-  
-          const customerField = buildNoteField('New Customer',
-            note.new_customer == 1 ? (note.customer_name || 'Yes') : 'No',
-            note.new_customer == 1);
-  
-          const quotationField = buildNoteField('New Quotation',
-            note.new_quotation == 1 ? (note.quotation_value ? 'SAR ' + parseFloat(note.quotation_value).toLocaleString() : 'Yes') : 'No',
-            note.new_quotation == 1);
-  
-          const updatedField = buildNoteField('Last Updated', formatDateTime(note.updated_at), null);
-  
-          fields.appendChild(customerField);
-          fields.appendChild(quotationField);
-          fields.appendChild(updatedField);
-          body.appendChild(fields);
-  
-          if (note.notes) {
-            const noteText = document.createElement('div');
-            noteText.className = 'note-text';
-            noteText.textContent = note.notes;
-            body.appendChild(noteText);
-          }
-  
-          card.appendChild(body);
-        } else {
-          const empty = document.createElement('div');
-          empty.className = 'not-submitted';
-          empty.textContent = 'This worker has not submitted notes for this day yet.';
-          card.appendChild(empty);
-        }
-  
-        container.appendChild(card);
-      });
-  
-    } catch (e) {
-      container.innerHTML = '<p style="color:var(--danger);">Could not connect to the server.</p>';
-    }
-  }
-  
-  function buildNoteField(label, value, isPositive) {
-    const field = document.createElement('div');
-    field.className = 'note-field';
-  
-    const labelEl = document.createElement('div');
-    labelEl.className = 'note-field-label';
-    labelEl.textContent = label;
-  
-    const valueEl = document.createElement('div');
-    valueEl.className = 'note-field-value' + (isPositive === true ? ' yes' : isPositive === false ? ' no' : '');
-    valueEl.textContent = value;
-  
-    field.appendChild(labelEl);
-    field.appendChild(valueEl);
-    return field;
-  }
+   let _customersCount  = 0;
+   let _quotationsCount = 0;
+   
+   async function initDailyNote() {
+     const user = await requireWorker();
+     if (!user) return;
+     setNavbar(user);
+   
+     const today = new Date();
+     const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+     document.getElementById('display-date').textContent = today.toLocaleDateString('en-GB', options);
+   
+     await loadMyNotes();
+   }
+   
+   async function loadMyNotes() {
+     try {
+       const res = await apiGet('/daily/get_my_notes.php');
+       if (!res.success) return;
+   
+       if (res.data.today) {
+         const note = res.data.today;
+         document.getElementById('notes').value = note.notes || '';
+         document.getElementById('notes-count').textContent = `${(note.notes || '').length} / 3000`;
+   
+         // Restore customers
+         const customers = note.customers || [];
+         _customersCount = customers.length;
+         document.getElementById('customers-count').textContent = _customersCount;
+         renderEntries('customers', _customersCount, customers);
+   
+         // Restore quotations
+         const quotations = note.quotations || [];
+         _quotationsCount = quotations.length;
+         document.getElementById('quotations-count').textContent = _quotationsCount;
+         renderEntries('quotations', _quotationsCount, quotations);
+       }
+   
+       renderHistory(res.data.history || []);
+   
+     } catch (e) {
+       console.error('Could not load notes:', e);
+     }
+   }
+   
+   function changeCount(type, delta) {
+     if (type === 'customers') {
+       _customersCount = Math.max(0, Math.min(20, _customersCount + delta));
+       document.getElementById('customers-count').textContent = _customersCount;
+       renderEntries('customers', _customersCount);
+     } else {
+       _quotationsCount = Math.max(0, Math.min(20, _quotationsCount + delta));
+       document.getElementById('quotations-count').textContent = _quotationsCount;
+       renderEntries('quotations', _quotationsCount);
+     }
+   }
+   
+   function renderEntries(type, count, existingData) {
+     const container = document.getElementById(`${type}-entries`);
+     const current   = container.querySelectorAll('.entry-card');
+   
+     // Add new cards
+     while (container.children.length < count) {
+       const i    = container.children.length;
+       const card = document.createElement('div');
+       card.className = 'entry-card';
+   
+       const title = document.createElement('div');
+       title.className = 'entry-card-title';
+       title.textContent = type === 'customers' ? `Customer ${i + 1}` : `Quotation ${i + 1}`;
+   
+       const fields = document.createElement('div');
+       fields.className = 'entry-fields';
+   
+       if (type === 'customers') {
+         fields.innerHTML = `
+           <div class="form-group" style="margin-bottom:0;">
+             <label class="form-label">Name <span style="color:var(--grey-400);font-weight:400;">(optional)</span></label>
+             <input class="form-input" type="text" data-field="name" placeholder="Customer name" maxlength="200"/>
+           </div>
+           <div class="form-group" style="margin-bottom:0;">
+             <label class="form-label">Problem / Issue <span style="color:var(--grey-400);font-weight:400;">(optional)</span></label>
+             <input class="form-input" type="text" data-field="problem" placeholder="Briefly describe the issue" maxlength="1000"/>
+           </div>`;
+       } else {
+         fields.innerHTML = `
+           <div class="form-group" style="margin-bottom:0;">
+             <label class="form-label">Customer Name <span style="color:var(--grey-400);font-weight:400;">(optional)</span></label>
+             <input class="form-input" type="text" data-field="name" placeholder="Customer name" maxlength="200"/>
+           </div>
+           <div class="form-group" style="margin-bottom:0;">
+             <label class="form-label">Value (SAR) <span style="color:var(--grey-400);font-weight:400;">(optional)</span></label>
+             <input class="form-input" type="number" data-field="value" placeholder="e.g. 15000" min="0" max="999999999" step="0.01"/>
+           </div>`;
+       }
+   
+       card.appendChild(title);
+       card.appendChild(fields);
+       container.appendChild(card);
+   
+       // Fill existing data if provided
+       if (existingData && existingData[i]) {
+         const d = existingData[i];
+         card.querySelector('[data-field="name"]').value    = d.name    || '';
+         if (type === 'customers') {
+           card.querySelector('[data-field="problem"]').value = d.problem || '';
+         } else {
+           card.querySelector('[data-field="value"]').value   = d.value   || '';
+         }
+       }
+     }
+   
+     // Remove extra cards
+     while (container.children.length > count) {
+       container.removeChild(container.lastChild);
+     }
+   }
+   
+   function collectEntries(type) {
+     const cards = document.getElementById(`${type}-entries`).querySelectorAll('.entry-card');
+     return Array.from(cards).map(card => {
+       const name = card.querySelector('[data-field="name"]')?.value.trim() || '';
+       if (type === 'customers') {
+         return { name, problem: card.querySelector('[data-field="problem"]')?.value.trim() || '' };
+       } else {
+         return { name, value: card.querySelector('[data-field="value"]')?.value.trim() || '' };
+       }
+     });
+   }
+   
+   async function saveNote() {
+     const btn   = document.getElementById('save-btn');
+     const notes = document.getElementById('notes').value.trim();
+   
+     if (!notes) {
+       showAlert('alert-box', 'Additional Notes field is required.');
+       return;
+     }
+   
+     btn.disabled = true;
+     btn.textContent = 'Saving...';
+   
+     const data = {
+       note_date:  new Date().toISOString().split('T')[0],
+       notes:      sanitizeText(notes, 3000),
+       customers:  JSON.stringify(collectEntries('customers')),
+       quotations: JSON.stringify(collectEntries('quotations')),
+     };
+   
+     try {
+       const res = await apiPost('/daily/save_note.php', data);
+   
+       if (!res.success) {
+         showAlert('alert-box', res.message || 'Could not save notes.');
+         btn.disabled = false;
+         btn.textContent = 'Save Today\'s Notes';
+         return;
+       }
+   
+       const indicator = document.getElementById('save-indicator');
+       indicator.style.display = 'block';
+       setTimeout(() => { indicator.style.display = 'none'; }, 3000);
+   
+       showAlert('alert-box', 'Notes saved successfully.', 'success');
+       await loadMyNotes();
+   
+     } catch (e) {
+       showAlert('alert-box', 'Could not connect to the server.');
+     }
+   
+     btn.disabled = false;
+     btn.textContent = 'Save Today\'s Notes';
+   }
+   
+   function renderHistory(history) {
+     const listEl = document.getElementById('history-list');
+     const today  = new Date().toISOString().split('T')[0];
+     const past   = history.filter(n => n.note_date !== today);
+   
+     if (past.length === 0) {
+       listEl.innerHTML = '<p style="color:var(--grey-400);font-size:0.88rem;">No previous notes yet.</p>';
+       return;
+     }
+   
+     listEl.innerHTML = '';
+     past.forEach(note => {
+       const item = document.createElement('div');
+       item.className = 'history-item';
+   
+       const dateEl = document.createElement('div');
+       dateEl.className = 'history-date';
+       dateEl.textContent = formatDate(note.note_date);
+   
+       const tags = document.createElement('div');
+       tags.className = 'history-tags';
+   
+       const cBadge = document.createElement('span');
+       cBadge.className = `badge ${note.customer_count > 0 ? 'badge-success' : 'badge-grey'}`;
+       cBadge.textContent = `${note.customer_count} Customer${note.customer_count != 1 ? 's' : ''}`;
+   
+       const qBadge = document.createElement('span');
+       qBadge.className = `badge ${note.quotation_count > 0 ? 'badge-purple' : 'badge-grey'}`;
+       qBadge.textContent = note.quotation_count > 0
+         ? `${note.quotation_count} Quotation${note.quotation_count != 1 ? 's' : ''}` + (note.total_value ? ' · SAR ' + parseFloat(note.total_value).toLocaleString() : '')
+         : '0 Quotations';
+   
+       tags.appendChild(cBadge);
+       tags.appendChild(qBadge);
+       item.appendChild(dateEl);
+       item.appendChild(tags);
+   
+       if (note.notes) {
+         const noteText = document.createElement('div');
+         noteText.className = 'history-note';
+         noteText.textContent = note.notes;
+         item.appendChild(noteText);
+       }
+   
+       listEl.appendChild(item);
+     });
+   }
