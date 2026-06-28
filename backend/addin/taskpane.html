@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sales Feedback Task</title>
+  <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      font-size: 14px;
+      color: #1a1a2e;
+      background: #f5f2fd;
+      min-height: 100vh;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #2d1b69, #5d3bb5);
+      padding: 16px 20px;
+      color: white;
+    }
+
+    .header h1 { font-size: 16px; font-weight: 700; margin-bottom: 2px; }
+    .header p  { font-size: 12px; color: rgba(255,255,255,0.7); }
+
+    .body { padding: 16px; }
+
+    .form-group { margin-bottom: 14px; }
+
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: #5c5c7a;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 6px;
+    }
+
+    input[type="text"], textarea, select {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1.5px solid #e5e5f0;
+      border-radius: 6px;
+      font-size: 13px;
+      font-family: inherit;
+      color: #1a1a2e;
+      background: white;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input[type="text"]:focus,
+    textarea:focus,
+    select:focus { border-color: #5d3bb5; }
+
+    textarea { min-height: 70px; resize: vertical; }
+
+    .section-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #9a9ab0;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin: 16px 0 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #ede8fa;
+    }
+
+    .field-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .field-row input { flex: 1; }
+
+    .remove-btn {
+      width: 28px; height: 28px;
+      border: none;
+      background: #fee2e2;
+      color: #b42318;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 700;
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .add-field-btns {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+
+    .add-field-btn {
+      padding: 5px 10px;
+      border: 1.5px solid #e5e5f0;
+      border-radius: 100px;
+      background: white;
+      font-size: 11px;
+      font-weight: 600;
+      color: #5c5c7a;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s;
+    }
+
+    .add-field-btn:hover {
+      border-color: #5d3bb5;
+      color: #5d3bb5;
+      background: #f5f2fd;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s;
+      margin-top: 6px;
+    }
+
+    .btn-primary {
+      background: #5d3bb5;
+      color: white;
+    }
+
+    .btn-primary:hover   { background: #4a2d96; }
+    .btn-primary:disabled { background: #c4b3f0; cursor: not-allowed; }
+
+    .alert {
+      padding: 10px 14px;
+      border-radius: 6px;
+      font-size: 13px;
+      margin-bottom: 12px;
+      display: none;
+    }
+
+    .alert-error   { background: #fee2e2; color: #b42318; display: block; }
+    .alert-success { background: #ecfdf3; color: #027a48; display: block; }
+
+    .success-screen {
+      text-align: center;
+      padding: 32px 20px;
+      display: none;
+    }
+
+    .success-icon {
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      background: #ecfdf3;
+      color: #027a48;
+      font-size: 28px;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 16px;
+    }
+
+    .success-screen h2 { font-size: 18px; margin-bottom: 8px; }
+    .success-screen p  { color: #5c5c7a; font-size: 13px; margin-bottom: 20px; }
+
+    .link-box {
+      background: #f5f2fd;
+      border: 1px solid #ede8fa;
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-size: 12px;
+      color: #5d3bb5;
+      word-break: break-all;
+      margin-bottom: 12px;
+      text-align: left;
+    }
+
+    .req { color: #b42318; }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Create Feedback Task</h1>
+  <p>The link will be inserted into your email automatically.</p>
+</div>
+
+<div class="body" id="main-form">
+
+  <div class="alert" id="alert-box"></div>
+
+  <!-- Task details -->
+  <div class="form-group">
+    <label>Task Title <span class="req">*</span></label>
+    <input type="text" id="task-title" placeholder="e.g. Weekly Sales Report" maxlength="200"/>
+  </div>
+
+  <div class="form-group">
+    <label>Description <span style="font-weight:400;color:#9a9ab0;">(optional)</span></label>
+    <textarea id="task-desc" placeholder="Brief context for your team..."></textarea>
+  </div>
+
+  <!-- Feedback fields -->
+  <div class="section-title">Feedback Fields</div>
+  <p style="font-size:12px;color:#9a9ab0;margin-bottom:10px;">Add what you want workers to answer. Click a type to add it.</p>
+
+  <div id="fields-list"></div>
+
+  <div class="add-field-btns">
+    <button class="add-field-btn" onclick="addField('text')">+ Short Text</button>
+    <button class="add-field-btn" onclick="addField('textarea')">+ Long Text</button>
+    <button class="add-field-btn" onclick="addField('yesno')">+ Yes / No</button>
+    <button class="add-field-btn" onclick="addField('rating')">+ Rating 1–5</button>
+  </div>
+
+  <button class="btn btn-primary" id="create-btn" onclick="createTask()" style="margin-top:20px;">
+    Create Task &amp; Insert Link
+  </button>
+
+</div>
+
+<!-- Success screen -->
+<div class="success-screen" id="success-screen">
+  <div class="success-icon">✓</div>
+  <h2>Task Created!</h2>
+  <p>The feedback link has been inserted into your email.</p>
+  <div class="link-box" id="success-link"></div>
+  <button class="btn btn-primary" onclick="resetForm()">Create Another Task</button>
+</div>
+
+<script>
+  const BASE_URL = 'http://localhost/sales-department';
+  let _fields = [];
+  let _officeReady = false;
+
+  Office.onReady(function(info) {
+    if (info.host === Office.HostType.Outlook) {
+      _officeReady = true;
+    }
+  });
+
+  function addField(type) {
+    const id = Date.now();
+    _fields.push({ id, type, label: defaultLabel(type) });
+    renderFields();
+  }
+
+  function defaultLabel(type) {
+    const labels = {
+      text:     'Short answer',
+      textarea: 'Detailed response',
+      yesno:    'Yes / No question',
+      rating:   'Rating (1-5)',
+    };
+    return labels[type] || 'Question';
+  }
+
+  function removeField(id) {
+    _fields = _fields.filter(f => f.id !== id);
+    renderFields();
+  }
+
+  function renderFields() {
+    const list = document.getElementById('fields-list');
+    list.innerHTML = '';
+
+    if (_fields.length === 0) {
+      list.innerHTML = '<p style="color:#9a9ab0;font-size:12px;text-align:center;padding:12px;border:1.5px dashed #e5e5f0;border-radius:6px;margin-bottom:8px;">No fields yet. Click a type above to add one.</p>';
+      return;
+    }
+
+    _fields.forEach(function(field) {
+      const row = document.createElement('div');
+      row.className = 'field-row';
+
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.value = field.label;
+      input.placeholder = 'Field label';
+      input.maxLength = 200;
+      input.addEventListener('input', function() {
+        const f = _fields.find(function(f) { return f.id === field.id; });
+        if (f) f.label = input.value;
+      });
+
+      const tag = document.createElement('span');
+      tag.style.cssText = 'font-size:10px;color:#9a9ab0;white-space:nowrap;flex-shrink:0;';
+      tag.textContent = field.type;
+
+      const removeBtn = document.createElement('button');
+      removeBtn.className = 'remove-btn';
+      removeBtn.textContent = '×';
+      removeBtn.onclick = function() { removeField(field.id); };
+
+      row.appendChild(input);
+      row.appendChild(tag);
+      row.appendChild(removeBtn);
+      list.appendChild(row);
+    });
+  }
+
+  function showAlert(msg, type) {
+    const el = document.getElementById('alert-box');
+    el.textContent = msg;
+    el.className = 'alert alert-' + (type || 'error');
+  }
+
+  function hideAlert() {
+    const el = document.getElementById('alert-box');
+    el.className = 'alert';
+  }
+
+  async function createTask() {
+    hideAlert();
+    const title = document.getElementById('task-title').value.trim();
+    const desc  = document.getElementById('task-desc').value.trim();
+
+    if (!title) { showAlert('Please enter a task title.'); return; }
+    if (_fields.length === 0) { showAlert('Please add at least one feedback field.'); return; }
+
+    const btn = document.getElementById('create-btn');
+    btn.disabled = true;
+    btn.textContent = 'Creating...';
+
+    try {
+      // Get CSRF token first
+      const csrfRes = await fetch(BASE_URL + '/backend/auth/csrf.php', {
+        credentials: 'include'
+      });
+      const csrfData = await csrfRes.json();
+      if (!csrfData.success) { throw new Error('Could not get security token.'); }
+      const csrfToken = csrfData.data.token;
+
+      // Build form data
+      const formData = new FormData();
+      formData.append('csrf_token', csrfToken);
+      formData.append('title', title);
+      formData.append('description', desc);
+      formData.append('fields', JSON.stringify(_fields.map(function(f, i) {
+        return { label: f.label, field_type: f.type, is_required: 1, field_order: i };
+      })));
+
+      const res = await fetch(BASE_URL + '/backend/tasks/create.php', {
+        method: 'POST',
+        credentials: 'include',
+        body: formData
+      });
+
+      const data = await res.json();
+
+      if (!data.success) {
+        showAlert(data.message || 'Could not create task.');
+        btn.disabled = false;
+        btn.textContent = 'Create Task & Insert Link';
+        return;
+      }
+
+      const taskId   = data.data.task_id;
+      const link     = BASE_URL + '/pages/worker-feedback.html?task=' + taskId;
+      const linkText = '\n\nPlease submit your feedback here:\n' + link + '\n';
+
+      // Insert link into Outlook email body
+      if (_officeReady) {
+        Office.context.mailbox.item.body.getTypeAsync(function(result) {
+          if (result.value === Office.CoercionType.Html) {
+            const htmlLink = '<br/><br/><p><strong>Please submit your feedback here:</strong><br/><a href="' + link + '">' + link + '</a></p>';
+            Office.context.mailbox.item.body.setSelectedDataAsync(htmlLink, { coercionType: Office.CoercionType.Html });
+          } else {
+            Office.context.mailbox.item.body.setSelectedDataAsync(linkText, { coercionType: Office.CoercionType.Text });
+          }
+        });
+      }
+
+      // Show success screen
+      document.getElementById('main-form').style.display = 'none';
+      document.getElementById('success-link').textContent = link;
+      document.getElementById('success-screen').style.display = 'block';
+
+    } catch (e) {
+      showAlert(e.message || 'Could not connect to the portal. Make sure you are logged in.');
+      btn.disabled = false;
+      btn.textContent = 'Create Task & Insert Link';
+    }
+  }
+
+  function resetForm() {
+    _fields = [];
+    document.getElementById('task-title').value = '';
+    document.getElementById('task-desc').value  = '';
+    renderFields();
+    document.getElementById('main-form').style.display = 'block';
+    document.getElementById('success-screen').style.display = 'none';
+    document.getElementById('create-btn').disabled = false;
+    document.getElementById('create-btn').textContent = 'Create Task & Insert Link';
+    hideAlert();
+  }
+
+  // Initialize
+  renderFields();
+</script>
+</body>
+</html>
