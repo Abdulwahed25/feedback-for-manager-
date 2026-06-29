@@ -7,82 +7,28 @@
   <link rel="stylesheet" href="../css/style.css"/>
   <link rel="stylesheet" href="../css/worker.css"/>
 </head>
-<body class="feedback-body">
-
-  <div class="feedback-wrap">
-
-    <div class="feedback-brand">
-      <div class="brand-logo">SD</div>
-      <span class="brand-name">Sales Department</span>
-    </div>
-
-    <!-- Section: Login Gate -->
-    <div id="login-gate" style="display:none;">
-      <div class="card">
-        <h3>Sign in to submit feedback</h3>
-        <p style="margin-top:4px; margin-bottom:20px;">You need to be signed in so the manager knows who responded.</p>
-
-        <div class="form-group">
-          <label class="form-label" for="gate-email">Work Email</label>
-          <input class="form-input" type="email" id="gate-email" placeholder="you@company.com"/>
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="gate-password">Password</label>
-          <input class="form-input" type="password" id="gate-password" placeholder="Password"/>
-        </div>
-
-        <div id="gate-alert"></div>
-
-        <button class="btn btn-primary btn-full" onclick="gateLogin()">Sign In and Continue</button>
-        <p class="auth-footer" style="margin-top:14px;">No account? <a href="signup.html">Create one</a></p>
-      </div>
-    </div>
-
-    <!-- Section: Task Not Found -->
-    <div id="not-found" style="display:none;">
-      <div class="card" style="text-align:center; padding:48px;">
-        <h3>Task not found</h3>
-        <p style="margin-top:6px;">This link may be invalid or the task has been removed.</p>
-      </div>
-    </div>
-
-    <!-- Section: Already Submitted -->
-    <div id="already-submitted" style="display:none;">
-      <div class="card" style="text-align:center; padding:48px;">
-        <h3>Already submitted</h3>
-        <p style="margin-top:6px;">You have already submitted feedback for this task.</p>
-        <a href="worker-dashboard.html" class="btn btn-outline btn-sm" style="margin-top:16px;">View My Tasks</a>
-      </div>
-    </div>
-
-    <!-- Section: Feedback Form -->
-    <div id="form-section" style="display:none;">
-      <div class="feedback-task-header">
-        <span class="badge badge-purple">Feedback Required</span>
-        <h2 id="task-title"></h2>
-        <p id="task-desc"></p>
-      </div>
-
-      <div class="card">
-        <div id="fields-container"></div>
-        <div id="form-alert"></div>
-        <button class="btn btn-primary btn-full btn-lg" style="margin-top:16px;" onclick="submitFeedback()">Submit Feedback</button>
-      </div>
-    </div>
-
-    <!-- Section: Success -->
-    <div id="success-screen" style="display:none;">
-      <div class="card success-card">
-        <h2>Feedback submitted</h2>
-        <p style="margin-top:8px; margin-bottom:24px;">Your manager has been notified. Thank you for responding.</p>
-        <a href="worker-dashboard.html" class="btn btn-primary">View My Tasks</a>
-      </div>
-    </div>
-
+<body>
+<nav class="navbar">
+  <div class="navbar-left">
+    <button class="hamburger" onclick="toggleSidebar()"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18"/></svg></button>
+    <a class="navbar-brand" href="worker-dashboard.html"><div class="navbar-logo">SD</div><span class="navbar-title">Sales Department</span></a>
   </div>
-
-  <script src="../js/utils.js"></script>
-  <script src="../js/worker.js"></script>
-  <script>initFeedbackPage();</script>
+  <div class="navbar-actions"><div class="navbar-avatar" id="nav-avatar" onclick="logout()" title="Logout"></div></div>
+</nav>
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+    <span class="sidebar-label">Main</span>
+    <a class="sidebar-item" href="worker-dashboard.html"><svg class="icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>My Tasks</a>
+    <a class="sidebar-item" href="worker-daily-note.html"><svg class="icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>Daily Notes</a>
+    <span class="sidebar-label">Account</span>
+    <a class="sidebar-item" href="#" onclick="logout()"><svg class="icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>Logout</a>
+  </aside>
+  <main class="main">
+    <div id="page-content">Loading...</div>
+  </main>
+</div>
+<script src="../js/utils.js"></script>
+<script src="../js/worker.js"></script>
+<script>initFeedbackPage();</script>
 </body>
 </html>

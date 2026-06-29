@@ -10,51 +10,24 @@
 <body>
 <nav class="navbar">
   <div class="navbar-left">
-    <button class="hamburger" onclick="toggleSidebar()">
-      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
-    </button>
-    <a class="navbar-brand" href="worker-dashboard.html">
-      <div class="navbar-logo">SD</div>
-      <span class="navbar-title">Sales Department</span>
-    </a>
+    <button class="hamburger" onclick="toggleSidebar()"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18"/></svg></button>
+    <a class="navbar-brand" href="worker-dashboard.html"><div class="navbar-logo">SD</div><span class="navbar-title">Sales Department</span></a>
   </div>
-  <div class="navbar-actions">
-    <div class="navbar-avatar" id="nav-avatar" onclick="logout()" title="Logout"></div>
-  </div>
+  <div class="navbar-actions"><div class="navbar-avatar" id="nav-avatar" onclick="logout()" title="Logout"></div></div>
 </nav>
 <div class="layout">
   <aside class="sidebar" id="sidebar">
     <span class="sidebar-label">Main</span>
-    <a class="sidebar-item active" href="worker-dashboard.html">
-      <svg class="icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-      My Tasks
-    </a>
-    <a class="sidebar-item" href="worker-daily-note.html">
-      <svg class="icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-      Daily Notes
-    </a>
+    <a class="sidebar-item active" href="worker-dashboard.html"><svg class="icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>My Tasks</a>
+    <a class="sidebar-item" href="worker-daily-note.html"><svg class="icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>Daily Notes</a>
     <span class="sidebar-label">Account</span>
-    <a class="sidebar-item" href="#" onclick="logout()">
-      <svg class="icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-      Logout
-    </a>
+    <a class="sidebar-item" href="#" onclick="logout()"><svg class="icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>Logout</a>
   </aside>
   <main class="main">
-    <div class="page-header">
-      <h2 id="welcome-msg">My Tasks</h2>
-      <p>Feedback tasks assigned by your manager.</p>
-    </div>
+    <div class="page-header"><h2 id="welcome-msg">My Tasks</h2><p>Feedback tasks assigned by your manager.</p></div>
     <div class="stats-row" style="max-width:480px;">
-      <div class="stat-card purple">
-        <span class="stat-label">Pending</span>
-        <span class="stat-value" id="stat-pending">0</span>
-        <span class="stat-sub">Need your feedback</span>
-      </div>
-      <div class="stat-card">
-        <span class="stat-label">Completed</span>
-        <span class="stat-value" id="stat-done">0</span>
-        <span class="stat-sub">Submitted</span>
-      </div>
+      <div class="stat-card purple"><span class="stat-label">Pending</span><span class="stat-value" id="stat-pending">0</span><span class="stat-sub">Need your feedback</span></div>
+      <div class="stat-card"><span class="stat-label">Completed</span><span class="stat-value" id="stat-done">0</span><span class="stat-sub">Submitted</span></div>
     </div>
     <div class="tabs">
       <button class="tab active" onclick="showTab('pending', this)">Pending</button>

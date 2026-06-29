@@ -6,114 +6,56 @@
   <title>Manage Users - Sales Department</title>
   <link rel="stylesheet" href="../css/style.css"/>
   <link rel="stylesheet" href="../css/admin.css"/>
-  <style>
-    .user-card { background:var(--white);border:1px solid var(--grey-100);border-radius:var(--radius-md);padding:16px 20px;display:flex;align-items:center;gap:16px;margin-bottom:10px; }
-    .user-avatar { width:40px;height:40px;border-radius:50%;background:var(--purple-100);color:var(--purple-700);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1rem;flex-shrink:0; }
-    .user-info { flex:1; }
-    .user-name  { font-weight:600;font-size:0.95rem;color:var(--grey-900); }
-    .user-email { font-size:0.82rem;color:var(--grey-400); }
-    .user-actions { display:flex;gap:8px;flex-shrink:0; }
-    .modal-overlay { position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:200;display:flex;align-items:center;justify-content:center;padding:16px; }
-    .modal { background:var(--white);border-radius:var(--radius-lg);padding:32px;width:100%;max-width:480px;box-shadow:var(--shadow-lg); }
-    .modal h3 { margin-bottom:20px; }
-  </style>
 </head>
 <body>
 <nav class="navbar">
   <div class="navbar-left">
-    <button class="hamburger" onclick="toggleSidebar()">
-      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
-    </button>
-    <a class="navbar-brand" href="admin-dashboard.html">
-      <div class="navbar-logo">SD</div>
-      <span class="navbar-title">Sales Department</span>
-    </a>
+    <button class="hamburger" onclick="toggleSidebar()"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18"/></svg></button>
+    <a class="navbar-brand" href="admin-dashboard.html"><div class="navbar-logo">SD</div><span class="navbar-title">Sales Department</span></a>
   </div>
-  <div class="navbar-actions">
-    <div class="navbar-avatar" id="nav-avatar" onclick="logout()" title="Logout"></div>
-  </div>
+  <div class="navbar-actions"><div class="navbar-avatar" id="nav-avatar" onclick="logout()" title="Logout"></div></div>
 </nav>
 <div class="layout">
   <aside class="sidebar" id="sidebar">
     <span class="sidebar-label">Main</span>
-    <a class="sidebar-item" href="admin-dashboard.html">
-      <svg class="icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-      Dashboard
-    </a>
-    <a class="sidebar-item" href="admin-create-task.html">
-      <svg class="icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
-      New Task
-    </a>
-    <a class="sidebar-item" href="admin-history.html">
-      <svg class="icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-      History
-    </a>
-    <a class="sidebar-item" href="admin-daily-notes.html">
-      <svg class="icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-      Daily Notes
-    </a>
+    <a class="sidebar-item" href="admin-dashboard.html"><svg class="icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard</a>
+    <a class="sidebar-item" href="admin-create-task.html"><svg class="icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>New Task</a>
+    <a class="sidebar-item" href="admin-history.html"><svg class="icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>History</a>
+    <a class="sidebar-item" href="admin-daily-notes.html"><svg class="icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>Daily Notes</a>
     <span class="sidebar-label">Admin</span>
-    <a class="sidebar-item active" href="admin-users.html">
-      <svg class="icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
-      Manage Users
-    </a>
-    <a class="sidebar-item" href="admin-settings.html">
-      <svg class="icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
-      Settings
-    </a>
+    <a class="sidebar-item active" href="admin-users.html"><svg class="icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>Manage Users</a>
+    <a class="sidebar-item" href="admin-settings.html"><svg class="icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>Settings</a>
     <span class="sidebar-label">Account</span>
-    <a class="sidebar-item" href="#" onclick="logout()">
-      <svg class="icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-      Logout
-    </a>
+    <a class="sidebar-item" href="#" onclick="logout()"><svg class="icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>Logout</a>
   </aside>
   <main class="main">
-    <div class="page-header">
-      <h2>Manage Users</h2>
-      <p>Add, remove, or reset passwords for team members. No public signup is available.</p>
-    </div>
+    <div class="page-header"><h2>Manage Users</h2><p>Add, remove, or reset passwords for team members. No public signup is available.</p></div>
     <div id="alert-box"></div>
-    <div class="section-header">
-      <h3>Team Members</h3>
-      <button class="btn btn-primary btn-sm" onclick="openCreateModal()">Add User</button>
-    </div>
+    <div class="section-header"><h3>Team Members</h3><button class="btn btn-primary btn-sm" onclick="openCreateModal()">Add User</button></div>
     <div id="users-list"><p style="color:var(--grey-400);">Loading...</p></div>
   </main>
 </div>
-<!-- Create User Modal -->
-<div class="modal-overlay" id="create-modal" style="display:none;">
-  <div class="modal">
-    <h3>Add New User</h3>
+<div class="modal-overlay" id="create-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:200;display:none;align-items:center;justify-content:center;padding:16px;">
+  <div style="background:var(--white);border-radius:var(--radius-lg);padding:32px;width:100%;max-width:480px;box-shadow:var(--shadow-lg);">
+    <h3 style="margin-bottom:20px;">Add New User</h3>
     <div id="modal-alert"></div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-      <div class="form-group"><label class="form-label">First Name</label><input class="form-input" type="text" id="new-fname" placeholder="Ahmed"/></div>
-      <div class="form-group"><label class="form-label">Last Name</label><input class="form-input" type="text" id="new-lname" placeholder="Al-Rashid"/></div>
-    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;"><div class="form-group"><label class="form-label">First Name</label><input class="form-input" type="text" id="new-fname" placeholder="Ahmed"/></div><div class="form-group"><label class="form-label">Last Name</label><input class="form-input" type="text" id="new-lname" placeholder="Al-Rashid"/></div></div>
     <div class="form-group"><label class="form-label">Work Email</label><input class="form-input" type="email" id="new-email" placeholder="user@company.com"/></div>
-    <div class="form-group">
-      <label class="form-label">Role</label>
-      <select class="form-select" id="new-role"><option value="worker">Worker</option><option value="admin">Manager (Admin)</option></select>
-    </div>
+    <div class="form-group"><label class="form-label">Role</label><select class="form-select" id="new-role"><option value="worker">Worker</option><option value="admin">Manager (Admin)</option></select></div>
     <div class="form-group"><label class="form-label">Password</label><input class="form-input" type="password" id="new-password" placeholder="Min. 8 characters"/></div>
-    <div style="display:flex;gap:10px;margin-top:8px;">
-      <button class="btn btn-primary" id="create-btn" onclick="createUser()">Create User</button>
-      <button class="btn btn-ghost" onclick="closeCreateModal()">Cancel</button>
-    </div>
+    <div style="display:flex;gap:10px;margin-top:8px;"><button class="btn btn-primary" id="create-btn" onclick="createUser()">Create User</button><button class="btn btn-ghost" onclick="closeCreateModal()">Cancel</button></div>
   </div>
 </div>
-<!-- Reset Password Modal -->
-<div class="modal-overlay" id="reset-modal" style="display:none;">
-  <div class="modal">
-    <h3>Reset Password</h3>
+<div class="modal-overlay" id="reset-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:200;display:none;align-items:center;justify-content:center;padding:16px;">
+  <div style="background:var(--white);border-radius:var(--radius-lg);padding:32px;width:100%;max-width:480px;box-shadow:var(--shadow-lg);">
+    <h3 style="margin-bottom:20px;">Reset Password</h3>
     <p style="margin-bottom:20px;" id="reset-user-name"></p>
     <div id="reset-alert"></div>
     <div class="form-group"><label class="form-label">New Password</label><input class="form-input" type="password" id="reset-password" placeholder="Min. 8 characters"/></div>
-    <div style="display:flex;gap:10px;margin-top:8px;">
-      <button class="btn btn-primary" id="reset-btn" onclick="resetPassword()">Reset Password</button>
-      <button class="btn btn-ghost" onclick="closeResetModal()">Cancel</button>
-    </div>
+    <div style="display:flex;gap:10px;margin-top:8px;"><button class="btn btn-primary" id="reset-btn" onclick="resetPassword()">Reset Password</button><button class="btn btn-ghost" onclick="closeResetModal()">Cancel</button></div>
   </div>
 </div>
+
 <script src="../js/utils.js"></script>
 <script src="../js/admin-users.js"></script>
 <script>initUsersPage();</script>
