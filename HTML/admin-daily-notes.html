@@ -7,84 +7,75 @@
   <link rel="stylesheet" href="../css/style.css"/>
   <link rel="stylesheet" href="../css/admin.css"/>
   <style>
-    .date-nav {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 24px;
-      flex-wrap: wrap;
-    }
-    .date-nav select {
-      padding: 10px 14px;
-      border: 1.5px solid var(--grey-200);
+    .view-tabs { display:flex; gap:8px; margin-bottom:24px; }
+    .view-tab {
+      padding: 8px 20px;
+      border: 2px solid var(--grey-200);
       border-radius: var(--radius-sm);
-      font-family: var(--font-body);
-      font-size: 0.9rem;
-      color: var(--grey-900);
       background: var(--white);
-      outline: none;
       cursor: pointer;
-    }
-
-    .worker-note-card {
-      background: var(--white);
-      border: 1px solid var(--grey-100);
-      border-radius: var(--radius-md);
-      overflow: hidden;
-      margin-bottom: 12px;
-    }
-
-    .worker-note-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 16px 20px;
-      border-bottom: 1px solid var(--grey-100);
-    }
-
-    .worker-note-avatar {
-      width: 36px; height: 36px;
-      border-radius: 50%;
-      background: var(--purple-100);
-      color: var(--purple-700);
-      display: flex; align-items: center; justify-content: center;
-      font-weight: 700; font-size: 0.85rem; flex-shrink: 0;
-    }
-
-    .worker-note-body { padding: 16px 20px; }
-
-    .note-fields {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 12px;
-      margin-bottom: 12px;
-    }
-
-    .note-field {
-      background: var(--grey-50);
-      border-radius: var(--radius-sm);
-      padding: 10px 14px;
-    }
-
-    .note-field-label { font-size: 0.72rem; font-weight: 600; color: var(--grey-400); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
-    .note-field-value { font-size: 0.9rem; font-weight: 600; color: var(--grey-900); }
-    .note-field-value.yes { color: var(--success); }
-    .note-field-value.no  { color: var(--grey-400); }
-
-    .note-text { font-size: 0.88rem; color: var(--grey-600); line-height: 1.6; padding-top: 12px; border-top: 1px solid var(--grey-100); }
-
-    .not-submitted {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 16px 20px;
-      color: var(--grey-400);
       font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--grey-400);
+      font-family: var(--font-body);
+      transition: all var(--transition);
     }
+    .view-tab.active { border-color: var(--purple-600); background: var(--purple-50); color: var(--purple-700); }
+
+    .date-nav { display:flex; align-items:center; gap:12px; margin-bottom:24px; flex-wrap:wrap; }
+    .date-nav select { padding:10px 14px; border:1.5px solid var(--grey-200); border-radius:var(--radius-sm); font-family:var(--font-body); font-size:0.9rem; color:var(--grey-900); background:var(--white); outline:none; cursor:pointer; }
+
+    .worker-note-card { background:var(--white); border:1px solid var(--grey-100); border-radius:var(--radius-md); overflow:hidden; margin-bottom:12px; }
+    .worker-note-header { display:flex; align-items:center; gap:12px; padding:16px 20px; border-bottom:1px solid var(--grey-100); }
+    .worker-note-avatar { width:36px; height:36px; border-radius:50%; background:var(--purple-100); color:var(--purple-700); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.85rem; flex-shrink:0; }
+    .worker-note-body { padding:16px 20px; }
+    .note-fields { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px; margin-bottom:12px; }
+    .note-field { background:var(--grey-50); border-radius:var(--radius-sm); padding:10px 14px; }
+    .note-field-label { font-size:0.72rem; font-weight:600; color:var(--grey-400); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:4px; }
+    .note-field-value { font-size:0.9rem; font-weight:600; color:var(--grey-900); }
+    .note-field-value.yes { color:var(--success); }
+    .note-field-value.no  { color:var(--grey-400); }
+    .note-text { font-size:0.88rem; color:var(--grey-600); line-height:1.6; padding-top:12px; border-top:1px solid var(--grey-100); }
+    .not-submitted { display:flex; align-items:center; gap:10px; padding:16px 20px; color:var(--grey-400); font-size:0.88rem; }
+
+    /* Monthly view */
+    .perf-card { background:var(--white); border:1px solid var(--grey-100); border-radius:var(--radius-md); margin-bottom:16px; overflow:hidden; }
+    .perf-header { display:flex; align-items:center; gap:12px; padding:16px 20px; border-bottom:1px solid var(--grey-100); cursor:pointer; }
+    .perf-header:hover { background:var(--grey-50); }
+    .perf-avatar { width:40px; height:40px; border-radius:50%; background:var(--purple-100); color:var(--purple-700); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:1rem; flex-shrink:0; }
+    .perf-info { flex:1; }
+    .perf-name  { font-weight:600; font-size:0.95rem; color:var(--grey-900); }
+    .perf-email { font-size:0.8rem; color:var(--grey-400); }
+    .perf-stats { display:flex; gap:16px; flex-shrink:0; }
+    .perf-stat  { text-align:center; }
+    .perf-stat-value { font-size:1.2rem; font-weight:800; }
+    .perf-stat-label { font-size:0.72rem; color:var(--grey-400); text-transform:uppercase; letter-spacing:0.05em; }
+    .perf-rate-green  { color:var(--success); }
+    .perf-rate-orange { color:#b54708; }
+    .perf-rate-red    { color:var(--danger); }
+
+    .calendar-grid { padding:16px 20px; display:none; }
+    .calendar-grid.open { display:block; }
+    .calendar-dates { display:flex; flex-wrap:wrap; gap:6px; margin-top:12px; }
+    .cal-day {
+      width:36px; height:36px;
+      border-radius:6px;
+      display:flex; align-items:center; justify-content:center;
+      font-size:0.78rem; font-weight:600;
+      cursor:default;
+    }
+    .cal-day.submitted { background:#ecfdf3; color:#027a48; }
+    .cal-day.missed    { background:#fee2e2; color:#b42318; }
+    .cal-day.weekend   { background:var(--grey-50); color:var(--grey-300); }
+    .cal-day.future    { background:var(--grey-50); color:var(--grey-300); }
+    .cal-day.empty     { background:transparent; }
+
+    .cal-legend { display:flex; gap:16px; margin-bottom:8px; font-size:0.78rem; color:var(--grey-600); }
+    .cal-legend span { display:flex; align-items:center; gap:6px; }
+    .cal-dot { width:10px; height:10px; border-radius:3px; }
   </style>
 </head>
 <body>
-
 <nav class="navbar">
   <div class="navbar-left">
     <button class="hamburger" onclick="toggleSidebar()">
@@ -99,7 +90,6 @@
     <div class="navbar-avatar" id="nav-avatar" onclick="logout()" title="Logout"></div>
   </div>
 </nav>
-
 <div class="layout">
   <aside class="sidebar" id="sidebar">
     <span class="sidebar-label">Main</span>
@@ -119,6 +109,7 @@
       <svg class="icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
       History
     </a>
+    <span class="sidebar-label">Admin</span>
     <a class="sidebar-item" href="admin-users.html">
       <svg class="icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
       Manage Users
@@ -133,50 +124,62 @@
       Logout
     </a>
   </aside>
-
   <main class="main">
     <div class="page-header">
       <h2>Daily Sales Notes</h2>
-      <p>View your team's daily sales activity and notes.</p>
+      <p>View your team's daily sales activity and performance.</p>
     </div>
 
-    <!-- Date navigation -->
-    <div class="date-nav">
-      <label style="font-size:0.88rem;font-weight:500;color:var(--grey-600);">Viewing notes for:</label>
-      <select id="date-select" onchange="loadNotes(this.value)"></select>
-      <input type="date" id="date-picker" class="form-input" style="width:auto;" onchange="loadNotes(this.value)"/>
+    <!-- View tabs -->
+    <div class="view-tabs">
+      <button class="view-tab active" id="tab-daily" onclick="switchView('daily')">Daily View</button>
+      <button class="view-tab" id="tab-monthly" onclick="switchView('monthly')">Monthly Performance</button>
     </div>
 
-    <!-- Stats -->
-    <div class="stats-row" style="margin-bottom:24px;" id="stats-row">
-      <div class="stat-card purple">
-        <span class="stat-label">Submitted</span>
-        <span class="stat-value" id="stat-submitted">0</span>
-        <span class="stat-sub" id="stat-submitted-sub">out of 0 workers</span>
+    <!-- DAILY VIEW -->
+    <div id="view-daily">
+      <div class="date-nav">
+        <label style="font-size:0.88rem;font-weight:500;color:var(--grey-600);">Viewing notes for:</label>
+        <select id="date-select" onchange="loadNotes(this.value)"></select>
+        <input type="date" id="date-picker" class="form-input" style="width:auto;" onchange="loadNotes(this.value)"/>
       </div>
-      <div class="stat-card">
-        <span class="stat-label">New Customers</span>
-        <span class="stat-value" id="stat-customers">0</span>
-        <span class="stat-sub">Today</span>
+      <div class="stats-row" style="margin-bottom:24px;">
+        <div class="stat-card purple">
+          <span class="stat-label">Submitted</span>
+          <span class="stat-value" id="stat-submitted">0</span>
+          <span class="stat-sub" id="stat-submitted-sub">out of 0 workers</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">New Customers</span>
+          <span class="stat-value" id="stat-customers">0</span>
+          <span class="stat-sub">Today</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">New Quotations</span>
+          <span class="stat-value" id="stat-quotations">0</span>
+          <span class="stat-sub">Today</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Total Value</span>
+          <span class="stat-value" id="stat-value" style="font-size:1.3rem;">--</span>
+          <span class="stat-sub">SAR</span>
+        </div>
       </div>
-      <div class="stat-card">
-        <span class="stat-label">New Quotations</span>
-        <span class="stat-value" id="stat-quotations">0</span>
-        <span class="stat-sub">Today</span>
-      </div>
-      <div class="stat-card">
-        <span class="stat-label">Total Quotation Value</span>
-        <span class="stat-value" id="stat-value" style="font-size:1.3rem;">--</span>
-        <span class="stat-sub">SAR</span>
-      </div>
+      <div id="notes-container"><p style="color:var(--grey-400);">Loading...</p></div>
     </div>
 
-    <!-- Workers notes -->
-    <div id="notes-container"><p style="color:var(--grey-400);">Loading...</p></div>
+    <!-- MONTHLY VIEW -->
+    <div id="view-monthly" style="display:none;">
+      <div class="date-nav">
+        <label style="font-size:0.88rem;font-weight:500;color:var(--grey-600);">Month:</label>
+        <select id="month-select" onchange="loadMonthly(this.value)"></select>
+        <input type="month" id="month-picker" class="form-input" style="width:auto;" onchange="loadMonthly(this.value)"/>
+      </div>
+      <div id="monthly-container"><p style="color:var(--grey-400);">Loading...</p></div>
+    </div>
 
   </main>
 </div>
-
 <script src="../js/utils.js"></script>
 <script src="../js/admin-daily-notes.js"></script>
 <script>initAdminDailyNotes();</script>

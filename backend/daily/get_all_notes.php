@@ -18,11 +18,7 @@ try {
         'SELECT dn.*, u.name AS worker_name,
             (SELECT COUNT(*) FROM daily_note_customers  WHERE note_id = dn.id) AS customer_count,
             (SELECT COUNT(*) FROM daily_note_quotations WHERE note_id = dn.id) AS quotation_count,
-            (SELECT SUM(value_sar) FROM daily_note_quotations WHERE note_id = dn.id) AS total_value,
-            (SELECT JSON_ARRAYAGG(JSON_OBJECT("name", customer_name, "problem", problem))
-             FROM daily_note_customers WHERE note_id = dn.id) AS customers,
-            (SELECT JSON_ARRAYAGG(JSON_OBJECT("name", customer_name, "value", value_sar))
-             FROM daily_note_quotations WHERE note_id = dn.id) AS quotations
+            (SELECT SUM(value_sar) FROM daily_note_quotations WHERE note_id = dn.id) AS total_value
          FROM daily_notes dn
          JOIN users u ON u.id = dn.worker_id
          WHERE dn.note_date = ?
@@ -30,9 +26,16 @@ try {
     );
     $notesStmt->execute([$date]);
     $notes = $notesStmt->fetchAll();
+
+    // Fetch customers and quotations separately for each note
     foreach ($notes as &$note) {
-        $note['customers']  = json_decode($note['customers']  ?? '[]', true) ?: [];
-        $note['quotations'] = json_decode($note['quotations'] ?? '[]', true) ?: [];
+        $cStmt = $db->prepare('SELECT customer_name AS name, problem FROM daily_note_customers WHERE note_id = ?');
+        $cStmt->execute([$note['id']]);
+        $note['customers'] = $cStmt->fetchAll();
+
+        $qStmt = $db->prepare('SELECT customer_name AS name, value_sar AS value FROM daily_note_quotations WHERE note_id = ?');
+        $qStmt->execute([$note['id']]);
+        $note['quotations'] = $qStmt->fetchAll();
     }
 
     $datesStmt = $db->query('SELECT DISTINCT note_date FROM daily_notes ORDER BY note_date DESC LIMIT 30');
@@ -41,7 +44,7 @@ try {
     $statsStmt = $db->prepare(
         'SELECT
             COUNT(DISTINCT dn.id) AS submitted,
-            (SELECT COUNT(*) FROM daily_note_customers  c JOIN daily_notes n ON n.id = c.note_id WHERE n.note_date = ?) AS total_customers,
+            (SELECT COUNT(*) FROM daily_note_customers c JOIN daily_notes n ON n.id = c.note_id WHERE n.note_date = ?) AS total_customers,
             (SELECT COUNT(*) FROM daily_note_quotations q JOIN daily_notes n ON n.id = q.note_id WHERE n.note_date = ?) AS total_quotations,
             (SELECT SUM(q.value_sar) FROM daily_note_quotations q JOIN daily_notes n ON n.id = q.note_id WHERE n.note_date = ?) AS total_value
          FROM daily_notes dn WHERE dn.note_date = ?'

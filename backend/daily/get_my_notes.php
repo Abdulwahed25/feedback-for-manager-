@@ -7,19 +7,18 @@ $sessionUser = requireSessionWorker();
 try {
     $db = getDB();
 
-    $todayStmt = $db->prepare(
-        'SELECT dn.*,
-            (SELECT JSON_ARRAYAGG(JSON_OBJECT("name", customer_name, "problem", problem))
-             FROM daily_note_customers WHERE note_id = dn.id) AS customers,
-            (SELECT JSON_ARRAYAGG(JSON_OBJECT("name", customer_name, "value", value_sar))
-             FROM daily_note_quotations WHERE note_id = dn.id) AS quotations
-         FROM daily_notes dn WHERE dn.worker_id = ? AND dn.note_date = CURDATE() LIMIT 1'
-    );
+    $todayStmt = $db->prepare('SELECT * FROM daily_notes WHERE worker_id = ? AND note_date = CURDATE() LIMIT 1');
     $todayStmt->execute([$sessionUser['id']]);
     $today = $todayStmt->fetch();
+
     if ($today) {
-        $today['customers']  = json_decode($today['customers']  ?? '[]', true) ?: [];
-        $today['quotations'] = json_decode($today['quotations'] ?? '[]', true) ?: [];
+        $cStmt = $db->prepare('SELECT customer_name AS name, problem FROM daily_note_customers WHERE note_id = ?');
+        $cStmt->execute([$today['id']]);
+        $today['customers'] = $cStmt->fetchAll();
+
+        $qStmt = $db->prepare('SELECT customer_name AS name, value_sar AS value FROM daily_note_quotations WHERE note_id = ?');
+        $qStmt->execute([$today['id']]);
+        $today['quotations'] = $qStmt->fetchAll();
     }
 
     $historyStmt = $db->prepare(
