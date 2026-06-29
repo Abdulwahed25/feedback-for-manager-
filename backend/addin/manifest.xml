@@ -23,7 +23,7 @@
   <FormSettings>
     <Form xsi:type="ItemEdit">
       <DesktopSettings>
-        <SourceLocation DefaultValue="https://YOUR_DOMAIN/addin/taskpane.html"/>
+        <SourceLocation DefaultValue="https://external-fridge-ferry.ngrok-free.dev/sales-department/addin/taskpane.html"/>
         <RequestedHeight>550</RequestedHeight>
       </DesktopSettings>
     </Form>
